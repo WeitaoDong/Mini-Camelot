@@ -2,11 +2,7 @@ package Controller;
 
 import Model.Node;
 
-import javax.swing.*;
-import java.awt.*;
-import java.net.URL;
 import java.util.HashSet;
-import java.util.Iterator;
 
 /**
  * Created by weitao on 4/21/15.
@@ -26,18 +22,20 @@ public class ChessGame {
         // Add the nodes
         for (int i=0; i<4; i++)
             createAndAddPiece(Node.COLOR_WHITE, Node.ROW_5, Node.COLUMN_C+i);
+//        System.out.println(Node.COLOR_WHITE+" ");
         for (int i=0; i<2; i++)
             createAndAddPiece(Node.COLOR_WHITE, Node.ROW_6, Node.COLUMN_D+i);
         for (int i=0; i<4; i++)
-            createAndAddPiece(Node.COLOR_BLACK, Node.ROW_9, Node.COLUMN_C+i);
+            createAndAddPiece(Node.COLOR_BLACK, Node.ROW_10, Node.COLUMN_C+i);
         for (int i=0; i<2; i++)
-            createAndAddPiece(Node.COLOR_BLACK, Node.ROW_10, Node.COLUMN_D+i);
+            createAndAddPiece(Node.COLOR_BLACK, Node.ROW_9, Node.COLUMN_D+i);
 
     }
 
     private void createAndAddPiece(int color, int row, int column) {
         Node node = new Node(color, row, column);
         this.nodes.add(node);
+        System.out.println("* "+nodes.contains(node)+" *");
     }
     public void changeGameState() {
         System.out.println(this.gameState);
@@ -49,7 +47,7 @@ public class ChessGame {
                 this.gameState = GAME_STATE_BLACK;
                 break;
             default:
-                throw new IllegalStateException("unknow game state: " + this.gameState);
+                throw new IllegalStateException("unknown game state: " + this.gameState);
         }
     }
 
@@ -68,7 +66,7 @@ public class ChessGame {
             node.setRow(targetRow);
             node.setColumn(targetColumn);
         }
-        if (judegeCaptureNode(node,opponentColor)) {
+        if (judgeCaptureNode(node, opponentColor)) {
             Node opponentNode = getNonCapturedNodeAtLocation(node, opponentColor, targetRow, targetColumn);
             opponentNode.isCaptured(true);
             node.setRow(targetRow);
@@ -89,11 +87,11 @@ public class ChessGame {
     }
 
     // capture move basic version
-    private boolean judegeCaptureNode(Node node, int color) {
+    private boolean judgeCaptureNode(Node node, int opponentColor) {
         for (Node node_tmp:nodes){
-            if (Math.abs(node_tmp.getRow()-node.getRow())==1
-                    &&Math.abs(node_tmp.getColumn()-node.getColumn())==1
-                    &&node_tmp.getColor()==color){
+            if (Math.abs(node_tmp.getRow() - node.getRow())==1
+                    &&Math.abs(node_tmp.getColumn() - node.getColumn())==1
+                    &&node_tmp.getColor()== opponentColor){
                 int row = node_tmp.getRow()-(node.getRow()-node_tmp.getRow());
                 int column = node_tmp.getColumn()-(node.getColumn()-node_tmp.getColumn());
                 return judegeMoveNode(node,row,column);
@@ -108,37 +106,43 @@ public class ChessGame {
         return new Node(color,realRow,realColumn);
     }
 
+    private boolean judgeOwnNode(int row, int column) {
+        for (Node node : nodes){
+            if (node.getRow()==row
+                    &&node.getColumn()==column
+                    &&!node.isCaptured()){
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Plain move & cantering move
-    private boolean judegeMoveNode(Node node, int row, int column) {
+    private boolean judegeMoveNode(Node node, int targetRow, int targetColumn) {
         for (Node node_tmp : nodes) {
-            if (node_tmp.getRow() == row && node_tmp.getColumn() == column) {
+            if (node_tmp.getRow() == targetRow
+                    && node_tmp.getColumn() == targetColumn
+                    && !node_tmp.isCaptured()) {
                 return false;
             }
         }
-        if (Math.abs(node.getRow() - row)<=2 && Math.abs(node.getColumn() - column)<=2) {
-            if (Math.abs(node.getRow() - row) == 2 && Math.abs(node.getColumn() - column) == 0) {
-                Node adjacentLeft = new Node(node.getColor(),node.getRow() - 1, node.getColumn());
-                Node adjacentRight = new Node(node.getColor(),node.getRow() + 1, node.getColumn());
-                return node.getRow()-row>0?nodes.contains(adjacentLeft):nodes.contains(adjacentRight);
-                } else if (Math.abs(node.getRow() - row) == 0 && Math.abs(node.getColumn() - column) == 2) {
-                    Node adjacentUp = new Node(node.getColor(), node.getRow(), node.getColumn() - 1);
-                    Node adjacentDown = new Node(node.getColor(), node.getRow(), node.getColumn() + 1);
-                    return node.getColumn()-column>0?nodes.contains(adjacentUp):nodes.contains(adjacentDown);
-                } else if (Math.abs(node.getRow() - row) == 2 && Math.abs(node.getColumn() - column) == 2) {
-                    Node adjacentUpLeft = new Node(node.getColor(), node.getRow()-1, node.getColumn() + 1);
-                    Node adjacentUpRight = new Node(node.getColor(), node.getRow()+1, node.getColumn() + 1);
-                    Node adjacentDownLeft = new Node(node.getColor(), node.getRow()-1, node.getColumn() - 1);
-                    Node adjacentDownRight = new Node(node.getColor(), node.getRow()+1, node.getColumn() - 1);
-                    if (node.getRow() - row == 2 && node.getColumn() - column == 2) {
-                        return nodes.contains(adjacentUpLeft);
-                    } else if (node.getRow() - row == -2 && node.getColumn() - column == 2) {
-                        return nodes.contains(adjacentUpRight);
-                    } else if (node.getRow() - row == 2 && node.getColumn() - column == -2) {
-                        return nodes.contains(adjacentDownLeft);
-                    } else { return nodes.contains(adjacentDownRight);}
-                } else if (Math.abs(node.getRow() - row) == 1 && Math.abs(node.getColumn() - column) == 1) return true;
-                else return false;
-            }
-        return false;
+        if (Math.abs(node.getRow() - targetRow)<=2 && Math.abs(node.getColumn() - targetColumn)<=2) {
+            if (Math.abs(node.getRow() - targetRow) == 2 && node.getColumn() == targetColumn) {
+                return node.getRow() - targetRow >0?judgeOwnNode(node.getRow()-1,node.getColumn()):judgeOwnNode(node.getRow()+1,node.getColumn());
+            } else if (node.getRow() == targetRow && Math.abs(node.getColumn() - targetColumn) == 2) {
+                return node.getColumn()- targetColumn >0?judgeOwnNode(node.getRow(),node.getColumn()-1):judgeOwnNode(node.getRow(),node.getColumn()+1);
+            } else if (Math.abs(node.getRow() - targetRow) == 2 && Math.abs(node.getColumn() - targetColumn) == 2) {
+                if (node.getRow() - targetRow == 2 && node.getColumn() - targetColumn == 2) {
+                    return judgeOwnNode(node.getRow()-1,node.getColumn()-1);
+                } else if (node.getRow() - targetRow == -2 && node.getColumn() - targetColumn == 2) {
+                    return judgeOwnNode(node.getRow()+1,node.getColumn()-1);
+                } else if (node.getRow() - targetRow == 2 && node.getColumn() - targetColumn == -2) {
+                    return judgeOwnNode(node.getRow()-1,node.getColumn()+1);
+                } else { return judgeOwnNode(node.getRow()+1,node.getColumn()+1);}
+            } else if (Math.abs(node.getRow() - targetRow) == 1 && Math.abs(node.getColumn() - targetColumn) == 1) {
+                return true;
+            } else return true;
         }
+        return false;
+    }
 }

@@ -17,11 +17,8 @@ import java.util.HashSet;
  * Created by weitao on 4/20/15.
  */
 public class CamelotGui extends JPanel {
-    private int gameState = GAME_STATE_WHITE;
-    static final int GAME_STATE_WHITE = 0;
-    static final int GAME_STATE_BLACK = 1;
-    private static final int BOARD_START_X = 301;
-    private static final int BOARD_START_Y = 51;
+    private static final int BOARD_START_X = 5;
+    private static final int BOARD_START_Y = 5;
 
     private static final int SQUARE_WIDTH = 50;
     private static final int SQUARE_HEIGHT = 50;
@@ -44,7 +41,7 @@ public class CamelotGui extends JPanel {
         this.setLayout(null);
 
         // Load the background
-        URL urlBackgroundImg = getClass().getResource("blackground.png");
+        URL urlBackgroundImg = getClass().getResource("background.png");
         this.imgBackground = new ImageIcon(urlBackgroundImg).getImage();
 
         this.chessGame = new ChessGame();
@@ -122,7 +119,7 @@ public class CamelotGui extends JPanel {
         return NODES_START_X+SQUARE_WIDTH*column;
     }
     public static int convertRowToY(int row){
-        return NODES_START_Y + SQUARE_HEIGHT * (Node.ROW_8 - row);
+        return NODES_START_Y + SQUARE_HEIGHT * row;
     }
 
     public static int convertXToColumn(int x){
@@ -130,7 +127,7 @@ public class CamelotGui extends JPanel {
     }
 
     public static int convertYToRow(int y){
-        return Node.ROW_8 - (y - DRAG_TARGET_SQUARE_START_Y)/SQUARE_HEIGHT;
+        return (y - DRAG_TARGET_SQUARE_START_Y)/SQUARE_HEIGHT;
     }
 
     /**
@@ -145,13 +142,28 @@ public class CamelotGui extends JPanel {
         int targetRow = CamelotGui.convertYToRow(y);
         int targetColumn = CamelotGui.convertXToColumn(x);
 
-        if( targetRow < Node.ROW_1 || targetRow > Node.ROW_8 || targetColumn < Node.COLUMN_A || targetColumn > Node.COLUMN_H){
+        if( targetRow < Node.ROW_1
+                || targetRow > Node.ROW_14
+                || targetColumn < Node.COLUMN_A
+                || targetColumn > Node.COLUMN_H
+                || (targetRow>Node.ROW_11&&targetColumn<Node.COLUMN_B)
+                || (targetRow<Node.ROW_4&&targetColumn<Node.COLUMN_B)
+                || (targetRow>Node.ROW_11&&targetColumn>Node.COLUMN_G)
+                || (targetRow<Node.ROW_4&&targetColumn>Node.COLUMN_G)
+                || (targetRow>Node.ROW_12&&targetColumn<Node.COLUMN_C)
+                || (targetRow<Node.ROW_3&&targetColumn<Node.COLUMN_C)
+                || (targetRow>Node.ROW_12&&targetColumn>Node.COLUMN_F)
+                || (targetRow<Node.ROW_3&&targetColumn>Node.COLUMN_F)
+                || (targetRow>Node.ROW_13&&targetColumn<Node.COLUMN_D)
+                || (targetRow<Node.ROW_2&&targetColumn<Node.COLUMN_D)
+                || (targetRow>Node.ROW_13&&targetColumn>Node.COLUMN_E)
+                || (targetRow<Node.ROW_2&&targetColumn>Node.COLUMN_E)){
             // reset piece position if move is not valid
             dragNode.resetToUnderlyingNodePosition();
 
         }else{
             //change model and update gui piece afterwards
-            System.out.println("moving piece to "+targetRow+"/"+targetColumn);
+            System.out.println("moving " +dragNode.getColor() + " node to "+targetRow+"/"+targetColumn);
             this.chessGame.moveNode(dragNode.getnode().getRow(), dragNode.getnode().getColumn(), targetRow, targetColumn);
             dragNode.resetToUnderlyingNodePosition();
         }

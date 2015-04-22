@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class nodeListenerForMouse implements MouseListener, MouseMotionListener {
 
-    private HashSet<GuiNode> nodes;
+    private HashSet<GuiNode> guiNodes;
     private CamelotGui camelotGui;
 
     private GuiNode dragNode;
@@ -24,8 +24,8 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
     private int dragOffsetY;
 
 
-    public nodeListenerForMouse(HashSet<GuiNode> nodes, CamelotGui camelotGui) {
-        this.nodes = nodes;
+    public nodeListenerForMouse(HashSet<GuiNode> guiNodes, CamelotGui camelotGui) {
+        this.guiNodes = guiNodes;
         this.camelotGui = camelotGui;
     }
 
@@ -34,42 +34,44 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
         int x = evt.getPoint().x;
         int y = evt.getPoint().y;
 
-        // find out which piece to move.
-        // we check the list from top to buttom
-        // (therefore we itereate in reverse order)
-        //
-        Iterator tmp = nodes.iterator();
-        while (tmp.hasNext()) {
-            GuiNode temp = (GuiNode) tmp.next();
-            if (mouseOverNode(temp,x,y)){
-                // calculate offset, because we do not want the drag piece
-                // to jump with it's upper left corner to the current mouse
-                // position
-                //
-                this.dragOffsetX = x - temp.getX();
-                this.dragOffsetY = y - temp.getY();
-                this.dragNode = temp;
-                break;
+        for (GuiNode guinode:guiNodes){
+            if (mouseOverNode(guinode,x,y)){
+                if( (this.camelotGui.getGameState() == ChessGame.GAME_STATE_WHITE
+                        && guinode.getColor() == Node.COLOR_WHITE
+                ) ||
+                        (this.camelotGui.getGameState() == ChessGame.GAME_STATE_BLACK
+                                && guinode.getColor() == Node.COLOR_BLACK
+                        )
+                        ) {
+                    // calculate offset, because we do not want the drag piece
+                    // to jump with it's upper left corner to the current mouse
+                    // position
+                    //
+                    this.dragOffsetX = x - guinode.getX();
+                    this.dragOffsetY = y - guinode.getY();
+                    this.dragNode = guinode;
+                    break;
+                }
             }
-//            if (this.dragNode != null) {
-//                this.nodes.remove(this.dragNode);
-//                this.nodes.add(this.dragNode);
-//            }
+        }
+        if (this.dragNode != null) {
+            this.guiNodes.remove(this.dragNode);
+            this.guiNodes.add(this.dragNode);
         }
     }
 
     /**
      * check whether the mouse is currently over this piece
-     * @param node the playing piece
+     * @param guiNode the playing piece
      * @param x x coordinate of mouse
      * @param y y coordinate of mouse
      * @return true if mouse is over the piece
      */
-    private boolean mouseOverNode(GuiNode node, int x, int y) {
-        return node.getX() <= x
-                && node.getX()+node.getWidth() >= x
-                && node.getY() <= y
-                && node.getY()+node.getHeight() >= y;
+    private boolean mouseOverNode(GuiNode guiNode, int x, int y) {
+        return guiNode.getX() <= x
+                && guiNode.getX()+guiNode.getWidth() >= x
+                && guiNode.getY() <= y
+                && guiNode.getY()+guiNode.getHeight() >= y;
     }
 
     @Override
