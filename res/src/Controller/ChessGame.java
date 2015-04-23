@@ -121,15 +121,6 @@ public class ChessGame {
 
     // capture move basic version
     private HashMap<Node,HashSet<Node>> judgeCaptureNode(int opponentColor) {
-//        for (Node node_tmp:nodes){
-//            if (((Math.abs(node_tmp.getRow() - node.getRow())==1 && Math.abs(node_tmp.getColumn() - node.getColumn())==1)
-//                    ||(Math.abs(node_tmp.getRow() - node.getRow())==1 && node_tmp.getColumn() == node.getColumn())
-//                    ||(Math.abs(node_tmp.getColumn() - node.getColumn())==1 && node_tmp.getRow() == node.getRow()))
-//                    &&node_tmp.getColor()== opponentColor&&!node_tmp.isCaptured()) {
-//                System.out.println("judgeCaptureNode = "+node_tmp.getRow()+"/"+node_tmp.getColumn());
-//                return judgeMoveNode(node, node.getRow() + 2 * (node_tmp.getRow() - node.getRow()), node.getColumn()+2*(node_tmp.getColumn()-node.getColumn()));
-//            }
-//        }
         hashMap = new HashMap<Node, HashSet<Node>>();
         for (Node nodeTarget:nodes) {
             if (!nodeTarget.isCaptured()) {
@@ -150,40 +141,40 @@ public class ChessGame {
         return hashMap;
     }
 
-    private Node judgeCaptureNode(Node node, int targetRow, int targetColumn) {
-        int opponentColor = (node.getColor()==Node.COLOR_BLACK ? Node.COLOR_WHITE : Node.COLOR_BLACK);
-        Node tmp = getNonCapturedNodeAtLocation(node,targetRow,targetColumn);
-        if (tmp!=null){
-            return tmp;
-        } else{
-        for (Node node_tmp:nodes){
-                if (((Math.abs(node_tmp.getRow() - node.getRow())==1 && Math.abs(node_tmp.getColumn() - node.getColumn())==1)
-                        ||(Math.abs(node_tmp.getRow() - node.getRow())==1 && node_tmp.getColumn() == node.getColumn())
-                        ||(Math.abs(node_tmp.getColumn() - node.getColumn())==1 && node_tmp.getRow() == node.getRow()))
-                        &&node_tmp.getColor()== opponentColor){
-                    return node_tmp;
-                }
-            }
-        }
-        return new Node(node.getColor(),node.getRow(),node.getColumn());
-    }
+//    private Node judgeCaptureNode(Node node, int targetRow, int targetColumn) {
+//        int opponentColor = (node.getColor()==Node.COLOR_BLACK ? Node.COLOR_WHITE : Node.COLOR_BLACK);
+//        Node tmp = getNonCapturedNodeAtLocation(node,targetRow,targetColumn);
+//        if (tmp!=null){
+//            return tmp;
+//        } else{
+//        for (Node node_tmp:nodes){
+//                if (((Math.abs(node_tmp.getRow() - node.getRow())==1 && Math.abs(node_tmp.getColumn() - node.getColumn())==1)
+//                        ||(Math.abs(node_tmp.getRow() - node.getRow())==1 && node_tmp.getColumn() == node.getColumn())
+//                        ||(Math.abs(node_tmp.getColumn() - node.getColumn())==1 && node_tmp.getRow() == node.getRow()))
+//                        &&node_tmp.getColor()== opponentColor){
+//                    return node_tmp;
+//                }
+//            }
+//        }
+//        return new Node(node.getColor(),node.getRow(),node.getColumn());
+//    }
 
 
-
-    private Node getNonCapturedNodeAtLocation(Node node, int targetRow, int targetColumn) {
-        int opponentColor = (node.getColor()==Node.COLOR_BLACK ? Node.COLOR_WHITE : Node.COLOR_BLACK);
-        int realRow = (node.getRow()+targetRow)/2;
-        int realColumn = (node.getColumn()+targetColumn)/2;
-        for (Node node_tmp : this.nodes) {
-            if( node_tmp.getRow() == realRow
-                    && node_tmp.getColumn() == realColumn
-                    && !node_tmp.isCaptured()
-                    && node_tmp.getColor()==opponentColor){
-                return node_tmp;
-            }
-        }
-        return null;
-    }
+//
+//    private Node getNonCapturedNodeAtLocation(Node node, int targetRow, int targetColumn) {
+//        int opponentColor = (node.getColor()==Node.COLOR_BLACK ? Node.COLOR_WHITE : Node.COLOR_BLACK);
+//        int realRow = (node.getRow()+targetRow)/2;
+//        int realColumn = (node.getColumn()+targetColumn)/2;
+//        for (Node node_tmp : this.nodes) {
+//            if( node_tmp.getRow() == realRow
+//                    && node_tmp.getColumn() == realColumn
+//                    && !node_tmp.isCaptured()
+//                    && node_tmp.getColor()==opponentColor){
+//                return node_tmp;
+//            }
+//        }
+//        return null;
+//    }
 
     private boolean judgeOwnNode(int row, int column) {
         for (Node node : nodes){
