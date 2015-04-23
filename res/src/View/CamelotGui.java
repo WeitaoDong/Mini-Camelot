@@ -42,7 +42,7 @@ public class CamelotGui extends JPanel {
         this.setLayout(null);
 
         // Load the background
-        URL urlBackgroundImg = getClass().getResource("background.png");
+        URL urlBackgroundImg = getClass().getResource("img/background.png");
         this.imgBackground = new ImageIcon(urlBackgroundImg).getImage();
 
         this.chessGame = new ChessGame();
@@ -81,6 +81,7 @@ public class CamelotGui extends JPanel {
             case ChessGame.GAME_STATE_END: state = "end";break;
             case ChessGame.GAME_STATE_WHITE: state = "white";break;
         }
+
         return state;
 //        return (this.chessGame.getGameState() == ChessGame.GAME_STATE_WHITE ? "white" : "black");
     }
@@ -100,7 +101,7 @@ public class CamelotGui extends JPanel {
 
     private Image getImageForNode(int color) {
         String filename = "";
-        filename += (color == Node.COLOR_WHITE ? "w" : "b");
+        filename += (color == Node.COLOR_WHITE ? "img/w" : "img/b");
         filename += ".png";
 
         URL urlNodeImg = getClass().getResource(filename);
@@ -122,6 +123,7 @@ public class CamelotGui extends JPanel {
                 g.drawImage(guiNode.getImage(), guiNode.getX(), guiNode.getY(), null);
         }
         this.lblGameState.setText(this.getGameStateAsText());
+
     }
 
     public static int convertColumnToX(int column){
@@ -151,15 +153,24 @@ public class CamelotGui extends JPanel {
         int targetRow = CamelotGui.convertYToRow(y);
         int targetColumn = CamelotGui.convertXToColumn(x);
         boolean success = this.chessGame.moveNode(dragNode.getnode().getRow(), dragNode.getnode().getColumn(), targetRow, targetColumn);
-        if ( valid(targetRow, targetColumn) && success){
+        if ( !valid(targetRow, targetColumn) && !success){
             // reset piece position if move is not valid
             dragNode.resetToUnderlyingNodePosition();
-
         }else{
             //change model and update gui piece afterwards
             System.out.println("moving " + dragNode.getColor() + " node to " + targetRow + "/" + targetColumn);
+            int lastColor = dragNode.getColor();
             this.chessGame.moveNode(dragNode.getnode().getRow(), dragNode.getnode().getColumn(), targetRow, targetColumn);
             dragNode.resetToUnderlyingNodePosition();
+
+            if (this.getGameState()==ChessGame.GAME_STATE_END) {
+                if (lastColor == ChessGame.GAME_STATE_WHITE) {
+                    JOptionPane.showMessageDialog(CamelotGui.this, "Over, white is the winner!", "Congratulations!", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(CamelotGui.this, "Over, black is the winner!", "Congratulations!", JOptionPane.INFORMATION_MESSAGE);
+                }
+
+            }
         }
     }
 
@@ -181,9 +192,9 @@ public class CamelotGui extends JPanel {
                 || (targetRow<Node.ROW_2&&targetColumn<Node.COLUMN_D)
                 || (targetRow>Node.ROW_13&&targetColumn>Node.COLUMN_E)
                 || (targetRow<Node.ROW_2&&targetColumn>Node.COLUMN_E)){
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     public void setGuiNode(GuiNode guiNode) { this.guiNode = guiNode;}

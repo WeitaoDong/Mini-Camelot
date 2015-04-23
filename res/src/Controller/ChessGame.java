@@ -12,7 +12,7 @@ import java.util.HashSet;
 /**
  * Created by weitao on 4/21/15.
  */
-public class ChessGame {
+public class ChessGame implements Runnable{
 
     private int gameState;
     public static final int GAME_STATE_WHITE = 0;
@@ -87,7 +87,8 @@ public class ChessGame {
             if (((Math.abs(targetColumn - column) == 0 && Math.abs(targetRow - row) == 2)
                     || (Math.abs(targetColumn - column) == 2 && Math.abs(targetRow - row) == 0)
                     || (Math.abs(targetColumn - column) == 2 && Math.abs(targetRow - row) == 2))
-                    && getNonCapturedNodeAtLocation(targetRow, targetColumn) == null) {
+                    && getNonCapturedNodeAtLocation(targetRow, targetColumn) == null
+                    && valid(targetRow,targetColumn)) {
                 for (Node node1 : nodes) {
                     if (!node1.isCaptured()) {
                         if (node1.getRow() == opponentRow
@@ -111,7 +112,7 @@ public class ChessGame {
                 }
             }
             return false;
-        } else if (judgeMoveNode(node, targetRow, targetColumn)) {
+        } else if (judgeMoveNode(node, targetRow, targetColumn)&&valid(targetRow,targetColumn)) {
             System.out.println("plain and jump movement");
             node.setRow(targetRow);
             node.setColumn(targetColumn);
@@ -280,5 +281,10 @@ public class ChessGame {
         } else return false;
 
         return false;
+    }
+
+    @Override
+    public void run() {
+
     }
 }

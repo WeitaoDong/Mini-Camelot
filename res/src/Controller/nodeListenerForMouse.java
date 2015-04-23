@@ -19,7 +19,6 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
     private HashSet<GuiNode> guiNodes;
     private CamelotGui camelotGui;
 
-//    private GuiNode dragNode;
     private int dragOffsetX;
     private int dragOffsetY;
 
@@ -43,7 +42,7 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
                         (this.camelotGui.getGameState() == ChessGame.GAME_STATE_BLACK
                                 && guinode.getColor() == Node.COLOR_BLACK
                                 && !guinode.isCaptured()
-                        )
+                            )
                         ) {
                     // calculate offset, because we do not want the drag piece
                     // to jump with it's upper left corner to the current mouse
@@ -54,7 +53,6 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
 
                     this.camelotGui.setGuiNode(guinode);
                     this.camelotGui.repaint();
-//                    this.dragNode = guinode;
                     break;
                 }
             }
