@@ -141,7 +141,6 @@ public class CamelotGui extends JPanel {
     public void setNewNodeLocation(GuiNode dragNode, int x, int y) {
         int targetRow = CamelotGui.convertYToRow(y);
         int targetColumn = CamelotGui.convertXToColumn(x);
-
         if( targetRow < Node.ROW_1
                 || targetRow > Node.ROW_14
                 || targetColumn < Node.COLUMN_A
@@ -163,7 +162,7 @@ public class CamelotGui extends JPanel {
 
         }else{
             //change model and update gui piece afterwards
-            System.out.println("moving " +dragNode.getColor() + " node to "+targetRow+"/"+targetColumn);
+            System.out.println("moving " + dragNode.getColor() + " node to " + targetRow + "/" + targetColumn);
             this.chessGame.moveNode(dragNode.getnode().getRow(), dragNode.getnode().getColumn(), targetRow, targetColumn);
             dragNode.resetToUnderlyingNodePosition();
         }
