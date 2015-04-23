@@ -36,6 +36,7 @@ public class CamelotGui extends JPanel {
     private ChessGame chessGame;
     private Image imgBackground;
     private HashSet<GuiNode> guiNodes = new HashSet<GuiNode>();
+    private GuiNode guiNode;
 
     public CamelotGui(){
         this.setLayout(null);
@@ -61,8 +62,8 @@ public class CamelotGui extends JPanel {
         this.add(btnChangeGameState);
 
         // lable to display game state
-        String labelText = this.getGameStateAsText();
-        this.lblGameState = new JLabel(labelText);
+        this.lblGameState = new JLabel();
+        lblGameState.setText(this.getGameStateAsText());
         lblGameState.setBounds(0, 30, 80, 30);
         this.add(lblGameState);
 
@@ -74,7 +75,14 @@ public class CamelotGui extends JPanel {
     }
 
     private String getGameStateAsText() {
-        return (this.chessGame.getGameState() == ChessGame.GAME_STATE_WHITE ? "white" : "black");
+        String state = "unknown";
+        switch (this.chessGame.getGameState()) {
+            case ChessGame.GAME_STATE_BLACK: state = "black";break;
+            case ChessGame.GAME_STATE_END: state = "end";break;
+            case ChessGame.GAME_STATE_WHITE: state = "white";break;
+        }
+        return state;
+//        return (this.chessGame.getGameState() == ChessGame.GAME_STATE_WHITE ? "white" : "black");
     }
 
 
@@ -113,6 +121,7 @@ public class CamelotGui extends JPanel {
             if (!guiNode.isCaptured())
                 g.drawImage(guiNode.getImage(), guiNode.getX(), guiNode.getY(), null);
         }
+        this.lblGameState.setText(this.getGameStateAsText());
     }
 
     public static int convertColumnToX(int column){
@@ -141,7 +150,22 @@ public class CamelotGui extends JPanel {
     public void setNewNodeLocation(GuiNode dragNode, int x, int y) {
         int targetRow = CamelotGui.convertYToRow(y);
         int targetColumn = CamelotGui.convertXToColumn(x);
-        if( targetRow < Node.ROW_1
+        boolean success = this.chessGame.moveNode(dragNode.getnode().getRow(), dragNode.getnode().getColumn(), targetRow, targetColumn);
+        if ( valid(targetRow, targetColumn) && success){
+            // reset piece position if move is not valid
+            dragNode.resetToUnderlyingNodePosition();
+
+        }else{
+            //change model and update gui piece afterwards
+            System.out.println("moving " + dragNode.getColor() + " node to " + targetRow + "/" + targetColumn);
+            this.chessGame.moveNode(dragNode.getnode().getRow(), dragNode.getnode().getColumn(), targetRow, targetColumn);
+            dragNode.resetToUnderlyingNodePosition();
+        }
+    }
+
+
+    public boolean valid(int targetRow, int targetColumn){
+        if (targetRow < Node.ROW_1
                 || targetRow > Node.ROW_14
                 || targetColumn < Node.COLUMN_A
                 || targetColumn > Node.COLUMN_H
@@ -157,17 +181,13 @@ public class CamelotGui extends JPanel {
                 || (targetRow<Node.ROW_2&&targetColumn<Node.COLUMN_D)
                 || (targetRow>Node.ROW_13&&targetColumn>Node.COLUMN_E)
                 || (targetRow<Node.ROW_2&&targetColumn>Node.COLUMN_E)){
-            // reset piece position if move is not valid
-            dragNode.resetToUnderlyingNodePosition();
-
-        }else{
-            //change model and update gui piece afterwards
-            System.out.println("moving " + dragNode.getColor() + " node to " + targetRow + "/" + targetColumn);
-            this.chessGame.moveNode(dragNode.getnode().getRow(), dragNode.getnode().getColumn(), targetRow, targetColumn);
-            dragNode.resetToUnderlyingNodePosition();
+            return true;
         }
+        return false;
     }
 
+    public void setGuiNode(GuiNode guiNode) { this.guiNode = guiNode;}
+    public GuiNode getGuiNode() { return this.guiNode;}
     public static void main(String[] args) {
         new CamelotGui();
     }

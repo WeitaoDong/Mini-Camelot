@@ -19,7 +19,7 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
     private HashSet<GuiNode> guiNodes;
     private CamelotGui camelotGui;
 
-    private GuiNode dragNode;
+//    private GuiNode dragNode;
     private int dragOffsetX;
     private int dragOffsetY;
 
@@ -38,9 +38,11 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
             if (mouseOverNode(guinode,x,y)){
                 if( (this.camelotGui.getGameState() == ChessGame.GAME_STATE_WHITE
                         && guinode.getColor() == Node.COLOR_WHITE
+                        && !guinode.isCaptured()
                 ) ||
                         (this.camelotGui.getGameState() == ChessGame.GAME_STATE_BLACK
                                 && guinode.getColor() == Node.COLOR_BLACK
+                                && !guinode.isCaptured()
                         )
                         ) {
                     // calculate offset, because we do not want the drag piece
@@ -49,14 +51,17 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
                     //
                     this.dragOffsetX = x - guinode.getX();
                     this.dragOffsetY = y - guinode.getY();
-                    this.dragNode = guinode;
+
+                    this.camelotGui.setGuiNode(guinode);
+                    this.camelotGui.repaint();
+//                    this.dragNode = guinode;
                     break;
                 }
             }
         }
-        if (this.dragNode != null) {
-            this.guiNodes.remove(this.dragNode);
-            this.guiNodes.add(this.dragNode);
+        if (this.camelotGui.getGuiNode() != null) {
+            this.guiNodes.remove(this.camelotGui.getGuiNode());
+            this.guiNodes.add(this.camelotGui.getGuiNode());
         }
     }
 
@@ -76,23 +81,23 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
 
     @Override
     public void mouseReleased(MouseEvent evt) {
-        if( this.dragNode != null){
+        if( this.camelotGui.getGuiNode() != null){
             int x = evt.getPoint().x - this.dragOffsetX;
             int y = evt.getPoint().y - this.dragOffsetY;
 
             // set game piece to the new location if possible
             //
-            camelotGui.setNewNodeLocation(dragNode, x, y);
+            camelotGui.setNewNodeLocation(this.camelotGui.getGuiNode(), x, y);
             this.camelotGui.repaint();
-            this.dragNode = null;
+            this.camelotGui.setGuiNode(null);
         }
     }
 
     @Override
     public void mouseDragged(MouseEvent evt) {
-        if(this.dragNode != null){
-            this.dragNode.setX(evt.getPoint().x - this.dragOffsetX);
-            this.dragNode.setY(evt.getPoint().y - this.dragOffsetY);
+        if(this.camelotGui.getGuiNode() != null){
+            this.camelotGui.getGuiNode().setX(evt.getPoint().x - this.dragOffsetX);
+            this.camelotGui.getGuiNode().setY(evt.getPoint().y - this.dragOffsetY);
             this.camelotGui.repaint();
         }
 
