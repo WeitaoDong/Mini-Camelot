@@ -174,14 +174,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
             System.out.println("moving " + dragNode.getColor() + " node to " + targetRow + "/" + targetColumn);
             int lastColor = dragNode.getColor();
                 this.currentMove = move;
-            if (this.getGameState()==ChessGame.GAME_STATE_END) {
-                if (lastColor == ChessGame.GAME_STATE_WHITE) {
-                    JOptionPane.showMessageDialog(CamelotGui.this, "Over, white is the winner!", "Congratulations!", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(CamelotGui.this, "Over, black is the winner!", "Congratulations!", JOptionPane.INFORMATION_MESSAGE);
-                }
 
-            }
 
         }else{
             // reset piece position if move is not valid

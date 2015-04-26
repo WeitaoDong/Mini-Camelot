@@ -25,6 +25,7 @@ public class ChessGame implements Runnable{
     private IPlayerHandler white_player;
     private IPlayerHandler black_player;
     private IPlayerHandler active_player;
+    private CamelotGui camelotGui;
 //    private MoveValidator moveValidator;
 
     /**
@@ -56,6 +57,11 @@ public class ChessGame implements Runnable{
             waitForMove();
             swapActivePlayer();
         }
+            if (this.gameState == ChessGame.GAME_STATE_WHITE) {
+                JOptionPane.showMessageDialog(camelotGui, "Over, white is the winner!", "Congratulations!", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(camelotGui, "Over, black is the winner!", "Congratulations!", JOptionPane.INFORMATION_MESSAGE);
+            }
         System.out.println("ChessGame: game ended");
     }
     public void setPlayer(int nodeColor, IPlayerHandler iPlayerHandler){
@@ -75,6 +81,7 @@ public class ChessGame implements Runnable{
         } else {
             this.active_player = this.white_player;
         }
+
         this.changeGameState();
     }
 
@@ -189,10 +196,9 @@ public class ChessGame implements Runnable{
 
                         if (judgeEnd(node.getRow(), node.getColumn())) {
                             this.gameState = ChessGame.GAME_STATE_END;
-                        } else {
-                            return true;
                         }
-                        System.out.println("Row = " + node.getRow() + " Column = " + node.getColumn());
+                        return true;
+//                        System.out.println("Row = " + node.getRow() + " Column = " + node.getColumn());
                     }
                 }
             }
@@ -216,7 +222,12 @@ public class ChessGame implements Runnable{
         if (row == Node.ROW_1 && (column == Node.COLUMN_D || column == Node.COLUMN_E)
                 || (row == Node.ROW_14 && (column == Node.COLUMN_D || column == Node.COLUMN_E))) {
             return true;
-        } else return false;
+        }
+        int Color = this.getGameState();
+        for (Node node : nodes){
+            if (!node.isCaptured()&&node.getColor()!=Color) return false;
+        }
+        return true;
     }
 
     public boolean valid(int targetRow, int targetColumn) {
