@@ -84,7 +84,6 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
             int y = evt.getPoint().y - this.dragOffsetY;
 
             // set game piece to the new location if possible
-            //
             camelotGui.setNewNodeLocation(this.camelotGui.getGuiNode(), x, y);
             this.camelotGui.repaint();
             this.camelotGui.setGuiNode(null);
@@ -94,8 +93,9 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
     @Override
     public void mouseDragged(MouseEvent evt) {
         if(this.camelotGui.getGuiNode() != null){
-            this.camelotGui.getGuiNode().setX(evt.getPoint().x - this.dragOffsetX);
-            this.camelotGui.getGuiNode().setY(evt.getPoint().y - this.dragOffsetY);
+            GuiNode guiNode = this.camelotGui.getGuiNode();
+            guiNode.setX(evt.getPoint().x - this.dragOffsetX);
+            guiNode.setY(evt.getPoint().y - this.dragOffsetY);
             this.camelotGui.repaint();
         }
 
