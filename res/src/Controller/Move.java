@@ -2,6 +2,8 @@ package Controller;
 
 import Model.Node;
 
+import java.util.ArrayList;
+
 /**
  * Created by weitao on 4/23/15.
  */
@@ -10,7 +12,7 @@ public class Move {
     public int sourceColumn;
     public int targetRow;
     public int targetColumn;
-    public Move move;
+    public ArrayList<Node> captureNode;
 
     public Move(int sourceRow, int sourceColumn, int targetRow, int targetColumn){
         this.sourceRow = sourceRow;
@@ -24,4 +26,7 @@ public class Move {
                 Node.getColumnString(targetColumn)+"/"+Node.getRowString(targetRow);
     }
 
+    public Move clone(){
+        return new Move(sourceRow,sourceColumn,targetRow,targetColumn);
+    }
 }

@@ -40,11 +40,13 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
     private Move currentMove;
 
     private boolean draggingGameNodesEnabled;
+
     public static void main(String[] args) {
         ChessGame chessGame = new ChessGame();
         CamelotGui camelotGui = new CamelotGui(chessGame);
+        SimpleAiPlayerHandler simpleAiPlayerHandler = new SimpleAiPlayerHandler(chessGame);
         chessGame.setPlayer(Node.COLOR_WHITE, camelotGui);
-        chessGame.setPlayer(Node.COLOR_BLACK, camelotGui);
+        chessGame.setPlayer(Node.COLOR_BLACK, simpleAiPlayerHandler);
         new Thread(chessGame).start();
     }
     public CamelotGui(ChessGame chessGame){
@@ -88,7 +90,8 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         String state = "unknown";
         switch (this.chessGame.getGameState()) {
             case ChessGame.GAME_STATE_BLACK: state = "black";break;
-            case ChessGame.GAME_STATE_END: state = "end";break;
+            case ChessGame.GAME_STATE_END_WHITE_WON: state = "white win!!!";break;
+            case ChessGame.GAME_STATE_END_BLACK_WON: state = "black win!!!"; break;
             case ChessGame.GAME_STATE_WHITE: state = "white";break;
         }
 
@@ -101,7 +104,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
      * switches between the different game states
      */
     public void changeGameState() {
-        this.chessGame.changeGameState();
+//        this.chessGame.changeGameState(move);
         this.lblGameState.setText(this.getGameStateAsText());
     }
 
