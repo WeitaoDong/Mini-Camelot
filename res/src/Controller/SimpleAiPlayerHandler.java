@@ -18,7 +18,8 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
     /**
      * number of moves to look into the future
      */
-    public int maxDepth = 1;
+    public int maxDepth = 2;
+    Move bestMove = new Move(0,0,0,0);
 
 
     public SimpleAiPlayerHandler(ChessGame chessGame) {
@@ -28,76 +29,20 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
 
     @Override
     public Move getMove() {
-        return getBestMove();
+        return alpha_beta_search();
+//        System.out.println("ttt= "+ttt);
+//        return ttt;
     }
 
     /**
      * get best move for current game situation
      * @return a valid Move instance
      */
-    private Move getBestMove() {
-        System.out.println("getting best move");
-//        ChessConsole.printCurrentGameState(this.chessGame);
-        System.out.println("thinking...");
-
-        List<Move> validMoves = generateMoves(false);
-        int bestResult = Integer.MIN_VALUE;
-        Move bestMove = null;
-
-        for (Move move : validMoves) {
-            executeMove(move);
-            //System.out.println("evaluate move: "+move+" =========================================");
-            int evaluationResult = -1 * negaMax(this.maxDepth,"");
-            //System.out.println("result: "+evaluationResult);
-            undoMove(move);
-            if( evaluationResult > bestResult){
-                bestResult = evaluationResult;
-                bestMove = move;
-            }
-        }
-        System.out.println("done thinking! best move is: "+bestMove);
-        return bestMove;
-    }
 
     @Override
     public void moveSuccessfullyExecuted(Move move) {
         // we are using the same chessGame instance, so no need to do anything here.
         System.out.println("executed: "+move);
-    }
-
-    /**
-     * evaluate current game state according to nega max algorithm
-     *
-     * @param depth - current depth level (number of counter moves that still need to be evaluated)
-     * @param indent - debug string, that is placed in front of each log message
-     * @return integer score of game state after looking at "depth" counter moves
-     */
-    private int negaMax(int depth, String indent) {
-
-        if (depth <= 0
-                || this.chessGame.getGameState() == ChessGame.GAME_STATE_END_WHITE_WON
-                || this.chessGame.getGameState() == ChessGame.GAME_STATE_END_BLACK_WON){
-
-            return evaluateState();
-        }
-
-        List<Move> moves = generateMoves(false);
-        int currentMax = Integer.MIN_VALUE;
-
-        for(Move currentMove : moves){
-
-            executeMove(currentMove);
-            //ChessConsole.printCurrentGameState(this.chessGame);
-            int score = -1 * negaMax(depth - 1, indent+" ");
-            //System.out.println(indent+"handling move: "+currentMove+" : "+score);
-            undoMove(currentMove);
-
-            if( score > currentMax){
-                currentMax = score;
-            }
-        }
-        //System.out.println(indent+"max: "+currentMax);
-        return currentMax;
     }
 
     /**
@@ -119,6 +64,58 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         this.chessGame.changeGameState(move);
     }
 
+    /*ALPHA-BETA-SEARCH*/
+    private Move alpha_beta_search(){
+        int alpha = Integer.MIN_VALUE;
+        int beta = Integer.MAX_VALUE;
+        int v = MAX_VALUE(maxDepth, alpha, beta);
+        System.out.println(v);
+        return bestMove;
+    }
+
+    private int MAX_VALUE(int Depth, int alpha, int beta) {
+        // Cutoff-test
+        // if ()
+        int v = Integer.MIN_VALUE;
+        if (Depth<=0){
+            return Integer.MAX_VALUE;
+        }
+//        chessGame.availableNodes
+        List<Move> validMoves = generateMoves(false);
+        for (Move move: validMoves){
+            executeMove(move);
+            v = evaluateState(move);
+            v = Math.max(v, MIN_VALUE(Depth-1, alpha, beta));
+            undoMove(move);
+            if (v>=beta) {
+                bestMove = move;
+                return v;
+            }
+            if (v>=alpha){
+                bestMove = move;
+                alpha = v;
+            }
+        }
+        return v;
+    }
+    private int MIN_VALUE(int Depth, int alpha, int beta){
+        // Cutoff-test
+        // if ()
+        int v = Integer.MAX_VALUE;
+        if (Depth<=0){
+            return Integer.MIN_VALUE;
+        }
+        List<Move> validMoves = generateMoves(false);
+        for (Move move : validMoves){
+            executeMove(move);
+            v = evaluateState(move);
+            v = Math.min(v, MAX_VALUE(Depth-1,alpha,beta));
+            undoMove(move);
+            if (v<=alpha) return v;
+            beta = Math.min(beta,v);
+        }
+        return v;
+    }
     /**
      * generate all possible/valid moves for the specified game
      * @param debug - game state for which the moves should be generated
@@ -130,15 +127,14 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         List<Move> validMoves = new ArrayList<Move>();
         Move testMove = new Move(0,0,0,0);
 
-        int nodeColor = (this.chessGame.getGameState()==ChessGame.GAME_STATE_WHITE
-                ?Node.COLOR_WHITE
-                :Node.COLOR_BLACK);
+        int nodeColor = this.chessGame.getGameState()==ChessGame.GAME_STATE_WHITE?Node.COLOR_WHITE:Node.COLOR_BLACK;
 
         // iterate over all non-captured pieces
         for (Node node : chessGame.nodes) {
 
             // only look at pieces of current players color
-            if (nodeColor == node.getColor()) {
+            if (nodeColor == node.getColor()
+                    && !node.isCaptured()) {
 
                 // start generating move
                 testMove.sourceRow = node.getRow();
@@ -156,7 +152,8 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
 
                         // check if generated move is valid
                         if (this.chessGame.valid(testMove.targetRow,testMove.targetColumn)
-                                &&this.chessGame.judgeMove(testMove)) {
+                                && this.chessGame.judgeMove(testMove)
+                                && this.chessGame.judgeMoveNode(node, testMove.targetRow,testMove.targetColumn)) {
                             // valid move
                             validMoves.add(testMove.clone());
                         } else {
@@ -176,43 +173,57 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
      *
      * @return integer score of current game state
      */
-    private int evaluateState() {
+    private int evaluateState(Move move) {
 
         // add up score
         //
         int scoreWhite = 0;
         int scoreBlack = 0;
-        for (Node node : this.chessGame.getNodes()) {
-            if(node.getColor() == Node.COLOR_BLACK){
-//                scoreBlack +=
-//                        getScoreForPieceType(node.get());
-                scoreBlack +=
-                        getScoreForPiecePosition(node.getRow(),node.getColumn());
-            }else if( node.getColor() == Node.COLOR_WHITE){
-//                scoreWhite +=
-//                        getScoreForPieceType(piece.getType());
-                scoreWhite +=
-                        getScoreForPiecePosition(node.getRow(),node.getColumn());
+        Node temp = chessGame.getNonCapturedNodeAtLocation(move.targetRow, move.targetColumn);
+
+//        if (temp==null)
+//            System.out.println(move+" nodes= "+chessGame.nodes);
+        for (Node piece : this.chessGame.getNodes()) {
+            if (temp.getColor()==ChessGame.GAME_STATE_WHITE) {
+                scoreWhite += temp.getScore()*getScoreForNodePosition(move,temp.getColor());
+            } else if (temp.getColor()==ChessGame.GAME_STATE_BLACK){
+                scoreBlack += temp.getScore()*getScoreForNodePosition(move,temp.getColor());
             }else{
                 throw new IllegalStateException(
-                        "unknown piece color found: "+node.getColor());
+                        "unknown piece color found: "+piece.getColor());
             }
         }
+
+
+//        for (Node node : this.chessGame.getNodes()) {
+//            if(node.getColor() == Node.COLOR_BLACK){
+//
+//                scoreBlack +=
+//                        node.getScore()*getScoreForNodePosition(move);
+//            }else if( node.getColor() == Node.COLOR_WHITE){
+//
+//                scoreWhite +=
+//                        node.getScore()*getScoreForNodePosition(move);
+//            }else{
+//                throw new IllegalStateException(
+//                        "unknown piece color found: "+node.getColor());
+//            }
+//        }
 
         // return evaluation result depending on who's turn it is
         int gameState = this.chessGame.getGameState();
 
-        if( gameState == ChessGame.GAME_STATE_BLACK){
-            return scoreBlack - scoreWhite;
-
-        }else if(gameState == ChessGame.GAME_STATE_WHITE){
+        if (gameState == ChessGame.GAME_STATE_BLACK){
             return scoreWhite - scoreBlack;
 
-        }else if(gameState == ChessGame.GAME_STATE_END_WHITE_WON){
+        }else if (gameState == ChessGame.GAME_STATE_WHITE){
+            return scoreBlack - scoreWhite;
+
+        }else if (gameState == ChessGame.GAME_STATE_END_WHITE_WON){
             return Integer.MIN_VALUE + 1;
 
         }else if (gameState == ChessGame.GAME_STATE_END_BLACK_WON) {
-            return Integer.MIN_VALUE + 1;
+            return Integer.MAX_VALUE - 1;
         }else {
             throw new IllegalStateException("unknown game state: "+gameState);
         }
@@ -220,152 +231,56 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
 
     /**
      * get the evaluation bonus for the specified position
-     * @param row - one of Piece.ROW_..
-     * @param column - one of Piece.COLUMN_..
+     * @param move - one of Node.positon_..
+     * @param color - one of Node.Color_..
      * @return integer score
      */
-    private int getScoreForPiecePosition(int row, int column) {
-        byte[][] positionWeight =
-                {        {0,0,0,10,10,0,0,0}
-                        ,{0,0,2,2,2,2,0,0}
-                        ,{0,2,3,3,3,3,2,0}
-                        ,{2,2,3,4,4,3,2,2}
-                        ,{2,2,3,4,4,3,2,2}
-                        ,{2,2,3,3,3,3,2,2}
-                        ,{2,2,2,2,2,2,2,2}
-                        ,{1,1,1,1,1,1,1,1}
-                        ,{2,2,3,3,3,3,2,2}
-                        ,{2,2,3,4,4,3,2,2}
-                        ,{2,2,3,4,4,3,2,2}
-                        ,{0,2,3,3,3,3,2,0}
-                        ,{0,0,2,2,2,2,0,0}
-                        ,{0,0,0,10,10,0,0,0}
-                };
-        return positionWeight[row][column];
+    private int getScoreForNodePosition(Move move, int color) {
+//        Node node = chessGame.getNonCapturedNodeAtLocation(move.targetRow,move.targetColumn);
+        if (color==chessGame.GAME_STATE_WHITE) {
+            byte[][] positionWeight =
+                    {         {0, 0, 0, 1, 1, 0, 0, 0}
+                            , {0, 0, 2, 2, 2, 2, 0, 0}
+                            , {0, 2, 3, 3, 3, 3, 2, 0}
+                            , {2, 2, 3, 4, 4, 3, 2, 2}
+                            , {2, 3, 4, 4, 4, 4, 3, 2}
+                            , {3, 4, 5, 6, 6, 5, 4, 3}
+                            , {4, 5, 6, 7, 7, 6, 5, 4}
+                            , {5, 6, 7, 8, 8, 7, 6, 5}
+                            , {6, 7, 8, 9, 9, 8, 7, 6}
+                            , {7, 8, 9, 10, 10, 9, 8, 7}
+                            , {8, 9, 10, 11, 11, 10, 9, 8}
+                            , {0, 10, 11, 12, 12, 11, 10, 0}
+                            , {0, 0, 13, 13, 13, 13, 0, 0}
+                            , {0, 0, 0, 100, 100, 0, 0, 0}
+                    };
+            return positionWeight[move.targetRow][move.targetColumn];
+        }
+        else {
+            byte[][] positionWeight =
+                    {         {0, 0, 0, 100, 100, 0, 0, 0}
+                            , {0, 0, 13, 13, 13, 13, 0, 0}
+                            , {0, 10, 11, 12, 12, 11, 10, 0}
+                            , {8, 9, 10, 11, 11, 10, 9, 8}
+                            , {7, 8, 9, 10, 10, 9, 8, 7}
+                            , {6, 7, 8, 9, 9, 8, 7, 6}
+                            , {5, 6, 7, 8, 8, 7, 6, 5}
+                            , {4, 5, 6, 7, 7, 6, 5, 4}
+                            , {3, 4, 5, 6, 6, 5, 4, 3}
+                            , {2, 3, 4, 4, 4, 4, 3, 2}
+                            , {2, 2, 3, 4, 4, 3, 2, 2}
+                            , {0, 2, 3, 3, 3, 3, 2, 0}
+                            , {0, 0, 2, 2, 2, 2, 0, 0}
+                            , {0, 0, 0, 1, 1, 0, 0, 0}
+                    };
+            return positionWeight[move.targetRow][move.targetColumn];
+        }
+
     }
 
-    /**
-     * get the evaluation score for the specified piece type
-     * @param type - one of Piece.TYPE_..
-     * @return integer score
-     */
-    private int getScoreForPieceType(int type){
-        switch (type) {
-//            case Piece.TYPE_BISHOP: return 30;
-//            case Piece.TYPE_KING: return 99999;
-//            case Piece.TYPE_KNIGHT: return 30;
-//            case Piece.TYPE_PAWN: return 10;
-//            case Piece.TYPE_QUEEN: return 90;
-//            case Piece.TYPE_ROOK: return 50;
-            default: throw new IllegalArgumentException("unknown piece type: "+type);
-        }
-    }
 
     public static void main(String[] args) {
         ChessGame ch = new ChessGame();
         SimpleAiPlayerHandler ai = new SimpleAiPlayerHandler(ch);
-		/*
-		ch.pieces = new ArrayList<Piece>();
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_KING, Piece.ROW_3, Piece.COLUMN_C);
-		ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_KING, Piece.ROW_4, Piece.COLUMN_C);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_ROOK, Piece.ROW_5, Piece.COLUMN_C);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_ROOK, Piece.ROW_4, Piece.COLUMN_B);
-		ChessConsole.printCurrentGameState(ch);
-		System.out.println("score: "+ai.evaluateState());
-		System.out.println("move: "+ai.getBestMove()); //c4 b4
-		*/
-
-		/*
-		  a  b  c  d  e  f  g  h
-		  +--+--+--+--+--+--+--+--+
-		 8|BR|  |  |  |  |  |  |BR|8
-		  +--+--+--+--+--+--+--+--+
-		 7|BP|  |WR|  |BK|  |BP|BP|7
-		  +--+--+--+--+--+--+--+--+
-		 6|  |  |  |  |BP|BP|  |  |6
-		  +--+--+--+--+--+--+--+--+
-		 5|  |  |  |  |  |  |  |  |5
-		  +--+--+--+--+--+--+--+--+
-		 4|  |  |  |  |BB|  |  |  |4
-		  +--+--+--+--+--+--+--+--+
-		 3|  |  |  |  |WB|WP|  |  |3
-		  +--+--+--+--+--+--+--+--+
-		 2|WP|  |  |WQ|  |  |  |WP|2
-		  +--+--+--+--+--+--+--+--+
-		 1|  |  |  |  |WK|  |  |WR|1
-		  +--+--+--+--+--+--+--+--+
-		   a  b  c  d  e  f  g  h
-		*/
-
-		/*
-		ch.pieces = new ArrayList<Piece>();
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_ROOK, Piece.ROW_8, Piece.COLUMN_A);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_ROOK, Piece.ROW_8, Piece.COLUMN_H);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_7, Piece.COLUMN_A);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_KING, Piece.ROW_7, Piece.COLUMN_E);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_7, Piece.COLUMN_G);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_7, Piece.COLUMN_H);
-		ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_ROOK, Piece.ROW_7, Piece.COLUMN_C);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_6, Piece.COLUMN_E);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_6, Piece.COLUMN_F);
-		ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_BISHOP, Piece.ROW_4, Piece.COLUMN_E);
-		ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_BISHOP, Piece.ROW_3, Piece.COLUMN_E);
-		ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_PAWN, Piece.ROW_3, Piece.COLUMN_F);
-		ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_PAWN, Piece.ROW_2, Piece.COLUMN_A);
-		ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_QUEEN, Piece.ROW_2, Piece.COLUMN_D);
-		ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_PAWN, Piece.ROW_2, Piece.COLUMN_H);
-		ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_KING, Piece.ROW_1, Piece.COLUMN_E);
-		ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_ROOK, Piece.ROW_1, Piece.COLUMN_H);
-		ChessConsole.printCurrentGameState(ch);
-		ai = new SimpleAiPlayerHandler(ch);
-		System.out.println("score: "+ai.evaluateState());
-		System.out.println("move: "+ai.getBestMove()); //c4 b4
-		*/
-
-		/*
-		 *   a  b  c  d  e  f  g  h
- +--+--+--+--+--+--+--+--+
-8|BR|  |  |  |  |  |  |BR|8
- +--+--+--+--+--+--+--+--+
-7|BP|BB|WR|  |BK|  |BP|BP|7
- +--+--+--+--+--+--+--+--+
-6|  |  |  |  |BP|BP|  |  |6
- +--+--+--+--+--+--+--+--+
-5|  |  |  |  |  |  |  |  |5
- +--+--+--+--+--+--+--+--+
-4|  |  |  |  |WP|  |  |  |4
- +--+--+--+--+--+--+--+--+
-3|  |  |  |  |WB|WP|  |  |3
- +--+--+--+--+--+--+--+--+
-2|WP|  |  |WQ|  |  |  |WP|2
- +--+--+--+--+--+--+--+--+
-1|  |  |  |  |WK|  |  |WR|1
- +--+--+--+--+--+--+--+--+
-  a  b  c  d  e  f  g  h
-		 */
-
-//        ch.nodes = new HashSet<Node>();
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_ROOK, Piece.ROW_8, Piece.COLUMN_A);
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_ROOK, Piece.ROW_8, Piece.COLUMN_H);
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_7, Piece.COLUMN_A);
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_BISHOP, Piece.ROW_7, Piece.COLUMN_B);
-//        ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_ROOK, Piece.ROW_7, Piece.COLUMN_C);
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_KING, Piece.ROW_7, Piece.COLUMN_E);
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_7, Piece.COLUMN_G);
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_7, Piece.COLUMN_H);
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_6, Piece.COLUMN_E);
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_6, Piece.COLUMN_F);
-//        ch.createAndAddPiece(Piece.COLOR_BLACK, Piece.TYPE_PAWN, Piece.ROW_4, Piece.COLUMN_E);
-//        ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_BISHOP, Piece.ROW_3, Piece.COLUMN_E);
-//        ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_PAWN, Piece.ROW_3, Piece.COLUMN_F);
-//        ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_PAWN, Piece.ROW_2, Piece.COLUMN_A);
-//        ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_QUEEN, Piece.ROW_2, Piece.COLUMN_D);
-//        ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_PAWN, Piece.ROW_2, Piece.COLUMN_H);
-//        ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_KING, Piece.ROW_1, Piece.COLUMN_E);
-//        ch.createAndAddPiece(Piece.COLOR_WHITE, Piece.TYPE_ROOK, Piece.ROW_1, Piece.COLUMN_H);
-//        ch.gameState = ChessGame.GAME_STATE_BLACK;
-//        ChessConsole.printCurrentGameState(ch);
-//        System.out.println("score: "+ai.evaluateState());
-//        System.out.println("move: "+ai.getBestMove()); //c4 b4
     }
 }

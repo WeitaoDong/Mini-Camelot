@@ -23,13 +23,14 @@ public class ChessGame implements Runnable{
     public static final int GAME_STATE_END_WHITE_WON = 3;
 
     protected HashSet<Node> nodes = new HashSet<Node>();
-    private HashSet<Node> availableNodes;
-    private HashMap<Node, HashSet<Node>> hashMap;
+    protected HashSet<Node> availableNodes;
+    protected HashMap<Node, HashSet<Node>> hashMap;
+    private  HashMap<Node, HashSet<Node>> tmp;
     private IPlayerHandler white_player;
     private IPlayerHandler black_player;
     private IPlayerHandler active_player;
     private CamelotGui camelotGui;
-    private ArrayList<Node> capturedNodes = new ArrayList<Node>();
+    protected ArrayList<Node> capturedNodes = new ArrayList<Node>();
     private IPlayerHandler blackPlayerHandler;
     private IPlayerHandler whitePlayerHandler;
     private IPlayerHandler activePlayerHandler;
@@ -98,9 +99,9 @@ public class ChessGame implements Runnable{
 
 
     public void changeGameState(Move move) {
-        System.out.println(this.gameState == 1 ? "black" : "white");
+//        System.out.println(this.gameState == 1 ? "black" : "white");
         if (this.judgeEnd(move.targetRow,move.targetColumn)) {
-
+//            judgeWin(move.targetRow,move.targetColumn);
             if (this.gameState == ChessGame.GAME_STATE_BLACK) {
                 this.gameState = ChessGame.GAME_STATE_END_BLACK_WON;
             } else if(this.gameState == ChessGame.GAME_STATE_WHITE){
@@ -108,7 +109,7 @@ public class ChessGame implements Runnable{
             }else{
                 // leave game state as it is
             }
-//            return;
+            return;
         }
         switch (this.gameState) {
             case GAME_STATE_BLACK:
@@ -163,7 +164,7 @@ public class ChessGame implements Runnable{
         Node node = getNonCapturedNodeAtLocation(move.sourceRow, move.sourceColumn);
         if (node==null) return false;
         int opponentColor = (node.getColor() == Node.COLOR_BLACK ? Node.COLOR_WHITE : Node.COLOR_BLACK);
-        HashMap<Node, HashSet<Node>> tmp = judgeCaptureNode(opponentColor);
+        HashMap<Node, HashSet<Node>> tmp = new HashMap<Node, HashSet<Node>>(judgeCaptureNode(opponentColor));
         if (judgeFirstMove(tmp)) {
             if (((Math.abs(move.targetColumn - move.sourceColumn) == 0 && Math.abs(move.targetRow - move.sourceRow) == 2)
                     || (Math.abs(move.targetColumn - move.sourceColumn) == 2 && Math.abs(move.targetRow - move.sourceRow) == 0)
@@ -186,7 +187,7 @@ public class ChessGame implements Runnable{
                 }
             }
         }else if (judgeMoveNode(node, move.targetRow, move.targetColumn)&&valid(move.targetRow, move.targetColumn)) {
-            System.out.println("plain and jump movement");
+//            System.out.println("plain and jump movement");
             return true;
         }
 
@@ -200,13 +201,18 @@ public class ChessGame implements Runnable{
         node.setRow(move.sourceRow);
         node.setColumn(move.sourceColumn);
 
-        if(move.captureNode != null){
-            Node capture = move.captureNode.get(0);
-            capture.setRow(move.sourceRow);
-            capture.setColumn(move.targetColumn);
-            capture.isCaptured(false);
+//        this.nodes.add(node);
+
+        if (move.captureNode!=null){
+            move.captureNode.isCaptured(false);
+//            Node capture = this.capturedNodes.get(0);
+//            int row = (move.sourceRow+move.targetRow)/2;
+//            int column = (move.sourceColumn+move.targetColumn)/2;
+//            capture.setRow(row);
+//            capture.setColumn(column);
+//            capture.isCaptured(false);
             this.capturedNodes.remove(move.captureNode);
-            this.nodes.add(capture);
+//            this.nodes.add(capture);
         }
 
         if(node.getColor() == Node.COLOR_BLACK){
@@ -244,14 +250,16 @@ public class ChessGame implements Runnable{
                         node1.isCaptured(true);
                         node.setRow(move.targetRow);
                         node.setColumn(move.targetColumn);
-                        capturedNodes.add(node1);
+                        move.captureNode = node1;
+                        this.capturedNodes.add(node1);
+//                        this.nodes.remove(node1);
                         return true;
 //                        System.out.println("Row = " + node.getRow() + " Column = " + node.getColumn());
                     }
                 }
             }
         } else if (judgeMoveNode(node, move.targetRow, move.targetColumn)&&valid(move.targetRow, move.targetColumn)) {
-            System.out.println("plain and jump movement");
+//            System.out.println("plain and jump movement");
             node.setRow(move.targetRow);
             node.setColumn(move.targetColumn);
             return true;
@@ -260,11 +268,32 @@ public class ChessGame implements Runnable{
         // TODO check whether it can kill enemy continually
         return false;
     }
-
+//    public void judgeWin(int row, int column) {
+//        if (row == Node.ROW_1 && (column == Node.COLUMN_D || column == Node.COLUMN_E)&&this.gameState==Node.COLOR_BLACK){
+//            this.gameState=ChessGame.GAME_STATE_END_BLACK_WON;
+//        }
+//        if (row == Node.ROW_14 && (column == Node.COLUMN_D || column == Node.COLUMN_E&&this.gameState==Node.COLOR_WHITE)) {
+//            this.gameState=ChessGame.GAME_STATE_END_WHITE_WON;
+//        }
+//        int Color = this.getGameState();
+//        int numberBlack = 0;
+//        int numberWhite = 0;
+//        for (Node node : nodes){
+//            if (!node.isCaptured()&&node.getColor()==ChessGame.GAME_STATE_BLACK) numberBlack++;
+//            if (numberBlack==6) this.gameState=ChessGame.GAME_STATE_END_WHITE_WON;
+//            if (!node.isCaptured()&&node.getColor()==ChessGame.GAME_STATE_WHITE) numberWhite++;
+//            if (numberWhite==6) this.gameState=ChessGame.GAME_STATE_END_BLACK_WON;
+//        }
+//    }
 
     public boolean judgeEnd(int row, int column) {
-        if (row == Node.ROW_1 && (column == Node.COLUMN_D || column == Node.COLUMN_E)
-                || (row == Node.ROW_14 && (column == Node.COLUMN_D || column == Node.COLUMN_E))) {
+        if (row == Node.ROW_1
+                && (column == Node.COLUMN_D || column == Node.COLUMN_E)
+                && this.gameState==ChessGame.GAME_STATE_BLACK)
+            return true;
+        if (row == Node.ROW_14
+                && (column == Node.COLUMN_D || column == Node.COLUMN_E)
+                && this.gameState==ChessGame.GAME_STATE_WHITE) {
             return true;
         }
         int Color = this.getGameState();
@@ -355,7 +384,7 @@ public class ChessGame implements Runnable{
             if (node_tmp.getRow() == targetRow
                     && node_tmp.getColumn() == targetColumn
                     && !node_tmp.isCaptured()) {
-                System.out.println(false);
+//                System.out.println(false);
                 return false;
             }
         }

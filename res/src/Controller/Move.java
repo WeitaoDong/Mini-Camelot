@@ -12,7 +12,7 @@ public class Move {
     public int sourceColumn;
     public int targetRow;
     public int targetColumn;
-    public ArrayList<Node> captureNode;
+    public Node captureNode;
 
     public Move(int sourceRow, int sourceColumn, int targetRow, int targetColumn){
         this.sourceRow = sourceRow;

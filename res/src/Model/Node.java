@@ -38,7 +38,10 @@ public class Node {
     public static final int COLUMN_G = 6;
     public static final int COLUMN_H = 7;
 
+    protected int score = 1;
     private boolean isCaptured = false;
+
+    public int getScore() { return this.score;}
 
     public int getColor() { return this.color;}
 
