@@ -176,7 +176,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
             //change model and update gui piece afterwards
             System.out.println("moving " + dragNode.getColor() + " node to " + targetRow + "/" + targetColumn);
             int lastColor = dragNode.getColor();
-                this.currentMove = move;
+            this.currentMove = move;
 
 
         }else{

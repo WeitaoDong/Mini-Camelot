@@ -25,9 +25,9 @@ public class main {
         // then we attach the clients/players to the game
         //chessGame.setPlayer(Piece.COLOR_WHITE, chessGui);
         //chessGame.setPlayer(Piece.COLOR_WHITE, chessConsole);
-        chessGame.setPlayer(Node.COLOR_WHITE, chessGui);
+        chessGame.setPlayer(Node.COLOR_WHITE, ai1);
         //chessGame.setPlayer(Piece.COLOR_BLACK, ai1);
-        chessGame.setPlayer(Node.COLOR_BLACK, ai1);
+        chessGame.setPlayer(Node.COLOR_BLACK, chessGui);
 
         // in the end we start the game
         new Thread(chessGame).start();

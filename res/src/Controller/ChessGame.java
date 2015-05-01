@@ -99,9 +99,8 @@ public class ChessGame implements Runnable{
 
 
     public void changeGameState(Move move) {
-//        System.out.println(this.gameState == 1 ? "black" : "white");
-        if (this.judgeEnd(move.targetRow,move.targetColumn)) {
-//            judgeWin(move.targetRow,move.targetColumn);
+
+        if (this.judgeEnd(move.targetRow, move.targetColumn)) {
             if (this.gameState == ChessGame.GAME_STATE_BLACK) {
                 this.gameState = ChessGame.GAME_STATE_END_BLACK_WON;
             } else if(this.gameState == ChessGame.GAME_STATE_WHITE){
@@ -162,8 +161,12 @@ public class ChessGame implements Runnable{
 
     public boolean judgeMove(Move move){
         Node node = getNonCapturedNodeAtLocation(move.sourceRow, move.sourceColumn);
-        if (node==null) return false;
+        if (node==null) {
+            System.out.println("judgeMove false");
+            return false;
+        }
         int opponentColor = (node.getColor() == Node.COLOR_BLACK ? Node.COLOR_WHITE : Node.COLOR_BLACK);
+//TODO
         HashMap<Node, HashSet<Node>> tmp = new HashMap<Node, HashSet<Node>>(judgeCaptureNode(opponentColor));
         if (judgeFirstMove(tmp)) {
             if (((Math.abs(move.targetColumn - move.sourceColumn) == 0 && Math.abs(move.targetRow - move.sourceRow) == 2)
@@ -204,21 +207,24 @@ public class ChessGame implements Runnable{
 //        this.nodes.add(node);
 
         if (move.captureNode!=null){
+//            System.out.println(move.captureNode.toString());
+            // has already captured
+            // Node node1 = getNonCapturedNodeAtLocation(move.captureNode.getRow(),move.captureNode.getColumn());
+//            node1.isCaptured(false);
             move.captureNode.isCaptured(false);
-//            Node capture = this.capturedNodes.get(0);
-//            int row = (move.sourceRow+move.targetRow)/2;
-//            int column = (move.sourceColumn+move.targetColumn)/2;
-//            capture.setRow(row);
-//            capture.setColumn(column);
-//            capture.isCaptured(false);
             this.capturedNodes.remove(move.captureNode);
-//            this.nodes.add(capture);
+            move.captureNode = null;
+//            this.nodes.add(move.captureNode);
         }
 
         if(node.getColor() == Node.COLOR_BLACK){
             this.gameState = ChessGame.GAME_STATE_BLACK;
-        }else{
+        }else if (node.getColor() == Node.COLOR_WHITE){
             this.gameState = ChessGame.GAME_STATE_WHITE;
+        } else if (this.gameState == ChessGame.GAME_STATE_END_BLACK_WON){  // WARNING maybe bugs here
+            this.gameState = ChessGame.GAME_STATE_WHITE;
+        } else {
+            this.gameState = ChessGame.GAME_STATE_BLACK;
         }
     }
 
