@@ -73,6 +73,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         URL urlBackgroundImg = getClass().getResource("img/background.png");
         this.imgBackground = new ImageIcon(urlBackgroundImg).getImage();
 
+        // setup the setting in the panel
         white = new JRadioButton("white");
         black = new JRadioButton("black");
         easy = new JRadioButton("easy");
@@ -88,16 +89,9 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         operation1.add(normal);
         operation1.add(hard);
 
-//        JPanel operPanel = new JPanel();
         Box iconPanel = new Box(BoxLayout.Y_AXIS);
 
         Border operBorder = BorderFactory.createTitledBorder("Operation");
-//        operPanel.setBorder(operBorder);
-//        operPanel.add(white);
-//        operPanel.add(black);
-//        operPanel.add(easy);
-//        operPanel.add(normal);
-//        operPanel.add(hard);
 
         iconPanel.setBorder(operBorder);
         iconPanel.add(white);
@@ -137,9 +131,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
 
         this.lblGameState_record = new JLabel(this.getInformation());
         lblGameState_record.setText(this.getInformation());
-//        lblGameState_record.setBounds(0, 80, 80, 30);
         iconPanel.add(lblGameState_record);
-//        iconPanel.setLayout(new BoxLayout(iconPanel, BoxLayout.X_AXIS));
 
         JFrame f = new JFrame();
         f.setVisible(true);
@@ -149,6 +141,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         f.setSize(this.imgBackground.getWidth(null)+100, this.imgBackground.getHeight(null)+300);
     }
 
+    // listener then to set which one the player
     public class ChangeGameStateButtonActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -180,7 +173,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         }
     }
 
-
+    // set the context
     private String getGameStateAsText() {
         String state = "unknown";
         switch (this.chessGame.getGameState()) {
@@ -191,6 +184,8 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         }
         return state;
     }
+
+    // display the AI information
     private String getInformation(){
         String info = "";
         if (simpleAiPlayerHandler!=null) {
@@ -216,6 +211,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         return this.chessGame.getGameState();
     }
 
+    // get the horse image
     private Image getImageForNode(int color) {
         String filename = "";
         filename += (color == Node.COLOR_WHITE ? "img/w" : "img/b");
@@ -225,6 +221,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         return new ImageIcon(urlNodeImg).getImage();
     }
 
+    // add it to guiNodes
     private void createAndAddGuiNode(Node node) {
         Image img = this.getImageForNode(node.getColor());
         GuiNode guiNode = new GuiNode(img, node);
@@ -232,6 +229,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
     }
 
 
+    // paint the frame
     @Override
     protected void paintComponent(Graphics g) {
         g.drawImage(this.imgBackground, 0, 0, null);
@@ -248,6 +246,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
 
     }
 
+    // some convert to be done here
     public static int convertColumnToX(int column){
         return NODES_START_X+SQUARE_WIDTH*column;
     }
@@ -291,6 +290,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
     }
 
 
+    // check whether it is valid
     public boolean valid(int targetRow, int targetColumn){
         if (targetRow < Node.ROW_1
                 || targetRow > Node.ROW_14
@@ -342,6 +342,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         // repaint the new state
         this.repaint();
     }
+    // find the GuiNode
     public GuiNode getNodeAt(int row, int column){
         for (GuiNode guiNode:guiNodes){
             if( guiNode.getnode().getRow() == row

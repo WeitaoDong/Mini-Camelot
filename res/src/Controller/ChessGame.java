@@ -47,6 +47,8 @@ public class ChessGame implements Runnable{
             createAndAddNode(Node.COLOR_BLACK, Node.ROW_10, Node.COLUMN_C + i);
         for (int i = 0; i < 2; i++)
             createAndAddNode(Node.COLOR_BLACK, Node.ROW_9, Node.COLUMN_D + i);
+
+        // for debug, less nodes
 //        createAndAddNode(Node.COLOR_WHITE, Node.ROW_5, Node.COLUMN_C);
 //        createAndAddNode(Node.COLOR_BLACK, Node.ROW_10, Node.COLUMN_C);
     }
@@ -96,6 +98,7 @@ public class ChessGame implements Runnable{
     }
 
 
+    // check the gameState
     public void changeGameState(Move move) {
 
         if (this.judgeEnd(move.targetRow, move.targetColumn)) {
@@ -124,6 +127,7 @@ public class ChessGame implements Runnable{
         }
     }
 
+    // wait for Move
     private Move waitForMove(){
         Move move = null;
         // wait for the move
@@ -156,6 +160,7 @@ public class ChessGame implements Runnable{
         return this.gameState;
     }
 
+    // judge is it a legal move
     public boolean judgeMove(Move move){
         Node node = getNonCapturedNodeAtLocation(move.sourceRow, move.sourceColumn);
         if (node==null) {
@@ -192,6 +197,7 @@ public class ChessGame implements Runnable{
         return false;
     }
 
+    // cancel a move
     public void undoMove(Move move){
         // get target node
         Node node = getNonCapturedNodeAtLocation(move.targetRow, move.targetColumn);
@@ -216,6 +222,7 @@ public class ChessGame implements Runnable{
         }
     }
 
+    // move the node
     public boolean moveNode(Move move) {
         Node node = getNonCapturedNodeAtLocation(move.sourceRow, move.sourceColumn);
         if (node==null) {
@@ -259,6 +266,7 @@ public class ChessGame implements Runnable{
         return false;
     }
 
+    // judge whether it is end or not
     public boolean judgeEnd(int row, int column) {
         if (row == Node.ROW_1
                 && (column == Node.COLUMN_D || column == Node.COLUMN_E)
@@ -276,6 +284,7 @@ public class ChessGame implements Runnable{
         return true;
     }
 
+    // valid or not
     public boolean valid(int targetRow, int targetColumn) {
         if (targetRow < Node.ROW_1
                 || targetRow > Node.ROW_14
@@ -298,6 +307,7 @@ public class ChessGame implements Runnable{
         return true;
     }
 
+    // judge whether it is surronds the enemy's node
     private boolean judgeFirstMove(HashMap<Node, HashSet<Node>> tmp) {
         for (Node node : nodes) {
             if (tmp.containsKey(node) && !tmp.get(node).isEmpty())
@@ -306,6 +316,7 @@ public class ChessGame implements Runnable{
         return false;
     }
 
+    // get the node which is not captured
     public Node getNonCapturedNodeAtLocation(int row, int column) {
         for (Node node : this.nodes) {
             if (node.getRow() == row
@@ -317,7 +328,7 @@ public class ChessGame implements Runnable{
         return null;
     }
 
-    // capture move basic version
+    // get the possible capture move's Map
     private HashMap<Node, HashSet<Node>> judgeCaptureNode(int opponentColor) {
         hashMap = new HashMap<Node, HashSet<Node>>();
         for (Node nodeTarget : nodes) {

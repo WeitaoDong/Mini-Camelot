@@ -100,6 +100,7 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         return best_;
     }
 
+    // terminal
     private boolean terminalTest(int depth, int currentDepth, Date sysdate){
 
         if (this.chessGame.getGameState()==ChessGame.GAME_STATE_END_BLACK_WON
@@ -118,7 +119,7 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         } else return false;
 
     }
-
+    // max
     private List<Integer> MAX_VALUE(int Depth, int currentDepth, Date sysdate, int alpha, int beta) {
         this.currentDepth++;
         if (terminalTest(Depth,currentDepth,sysdate))
@@ -149,6 +150,7 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         }
         return bestMove;
     }
+    // min
     private int MIN_VALUE(int Depth, int currentDepth, Date sysdate, int alpha, int beta){
         this.currentDepth++;
         if (terminalTest(Depth,currentDepth,sysdate))
@@ -255,6 +257,8 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         }
         return evaluate;
     }
+
+    // another evaluate
     private int evaluateState(Move move) {
         // TODO
         // add up score

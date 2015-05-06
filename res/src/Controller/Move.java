@@ -21,11 +21,13 @@ public class Move {
         this.targetColumn = targetColumn;
     }
 
+    // log
     public String toString() {
         return Node.getColumnString(sourceColumn)+"/"+Node.getRowString(sourceRow)+ " -> " +
                 Node.getColumnString(targetColumn)+"/"+Node.getRowString(targetRow);
     }
 
+    // save the move
     public Move clone(){
         return new Move(sourceRow,sourceColumn,targetRow,targetColumn);
     }
