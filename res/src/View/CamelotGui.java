@@ -35,6 +35,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
     private Image imgBackground;
     private HashSet<GuiNode> guiNodes = new HashSet<GuiNode>();
     private GuiNode guiNode;
+    private JComboBox favoriteShows;
 
     private Move lastMove;
     private Move currentMove;
@@ -56,7 +57,11 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         // Load the background
         URL urlBackgroundImg = getClass().getResource("img/background.png");
         this.imgBackground = new ImageIcon(urlBackgroundImg).getImage();
-
+        favoriteShows = new JComboBox();
+        favoriteShows.addItem("Pushing Daisies");
+        this.add(favoriteShows);
+        favoriteShows.setEditable(true);
+        JOptionPane.showMessageDialog(CamelotGui.this, "", "Information", JOptionPane.QUESTION_MESSAGE);
         this.chessGame = chessGame;
         for (Node node:this.chessGame.getNodes()){
             createAndAddGuiNode(node);

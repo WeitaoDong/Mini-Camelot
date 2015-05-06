@@ -18,7 +18,7 @@ public class ChessGame implements Runnable{
     private int gameState = GAME_STATE_WHITE;
     public static final int GAME_STATE_WHITE = 0;
     public static final int GAME_STATE_BLACK = 1;
-//    public static final int GAME_STATE_END = -1;
+    //    public static final int GAME_STATE_END = -1;
     public static final int GAME_STATE_END_BLACK_WON = 2;
     public static final int GAME_STATE_END_WHITE_WON = 3;
 
@@ -49,7 +49,8 @@ public class ChessGame implements Runnable{
             createAndAddNode(Node.COLOR_BLACK, Node.ROW_10, Node.COLUMN_C + i);
         for (int i = 0; i < 2; i++)
             createAndAddNode(Node.COLOR_BLACK, Node.ROW_9, Node.COLUMN_D + i);
-
+//        createAndAddNode(Node.COLOR_WHITE, Node.ROW_5, Node.COLUMN_C);
+//        createAndAddNode(Node.COLOR_BLACK, Node.ROW_10, Node.COLUMN_C);
     }
 
     public void startGame() {
@@ -257,6 +258,7 @@ public class ChessGame implements Runnable{
                         node.setRow(move.targetRow);
                         node.setColumn(move.targetColumn);
                         move.captureNode = node1;
+//                        move.captureNode = new Node(node1.getColor(),node1.getRow(),node1.getColumn());
                         this.capturedNodes.add(node1);
 //                        this.nodes.remove(node1);
                         return true;
