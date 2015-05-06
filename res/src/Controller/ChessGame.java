@@ -65,7 +65,8 @@ public class ChessGame implements Runnable{
         while (this.gameState!=ChessGame.GAME_STATE_END_WHITE_WON){
             if (this.gameState==ChessGame.GAME_STATE_END_BLACK_WON) break;
             Move tmp = waitForMove();
-            swapActivePlayer(tmp);
+            swapActivePlayer();
+            changeGameState(tmp);
         }
         System.out.println("gameState = "+this.gameState);
         if (this.gameState == ChessGame.GAME_STATE_END_WHITE_WON) {
@@ -86,7 +87,7 @@ public class ChessGame implements Runnable{
         }
     }
 
-    private void swapActivePlayer(Move move) {
+    protected void swapActivePlayer() {
         // check if game end condition has been reached
         //
         if( this.active_player == this.white_player ){
@@ -95,7 +96,7 @@ public class ChessGame implements Runnable{
             this.active_player = this.white_player;
         }
 
-        this.changeGameState(move);
+//        this.changeGameState(move);
     }
 
 
@@ -134,7 +135,6 @@ public class ChessGame implements Runnable{
             move = this.active_player.getMove();
             try {Thread.sleep(100);} catch (InterruptedException e){e.printStackTrace();}
         } while (move==null||!valid(move.targetRow, move.targetColumn)||!judgeMove(move));//|| !this.moveValidator.isMoveValid(move,false)); // TODO 单独判断是否合法的
-//        System.out.println(this.judgeMove(move));
         boolean success = this.moveNode(move);
         if (success){
             this.black_player.moveSuccessfullyExecuted(move);
@@ -191,7 +191,6 @@ public class ChessGame implements Runnable{
                 }
             }
         }else if (judgeMoveNode(node, move.targetRow, move.targetColumn)&&valid(move.targetRow, move.targetColumn)) {
-//            System.out.println("plain and jump movement");
             return true;
         }
 

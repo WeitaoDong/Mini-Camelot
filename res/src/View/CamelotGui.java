@@ -7,8 +7,12 @@ import sun.dc.pr.PRError;
 
 import javax.print.DocFlavor;
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.HashSet;
 
 /**
@@ -31,14 +35,25 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
     private static final int DRAG_TARGET_SQUARE_START_Y = BOARD_START_Y - (int)(NODE_HEIGHT/2.0);
 
     private JLabel lblGameState;
+    private JLabel lblGameState_record;
     private ChessGame chessGame;
     private Image imgBackground;
     private HashSet<GuiNode> guiNodes = new HashSet<GuiNode>();
     private GuiNode guiNode;
-    private JComboBox favoriteShows;
+    JRadioButton white, black, easy, normal, hard;
+    protected int gameState;
+    protected int depth;
+    public int getDepth(){
+        return this.depth;
+    }
+    public int getSetGameState(){
+        return this.gameState;
+    }
 
     private Move lastMove;
     private Move currentMove;
+    private JButton button1,button2;
+    private SimpleAiPlayerHandler simpleAiPlayerHandler;
 
     private boolean draggingGameNodesEnabled;
 
@@ -57,15 +72,50 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         // Load the background
         URL urlBackgroundImg = getClass().getResource("img/background.png");
         this.imgBackground = new ImageIcon(urlBackgroundImg).getImage();
-        favoriteShows = new JComboBox();
-        favoriteShows.addItem("Pushing Daisies");
-        this.add(favoriteShows);
-        favoriteShows.setEditable(true);
-        JOptionPane.showMessageDialog(CamelotGui.this, "", "Information", JOptionPane.QUESTION_MESSAGE);
+
+        white = new JRadioButton("white");
+        black = new JRadioButton("black");
+        easy = new JRadioButton("easy");
+        normal = new JRadioButton("normal");
+        hard = new JRadioButton("hard");
+
+        ButtonGroup operation = new ButtonGroup();
+        operation.add(white);
+        operation.add(black);
+
+        ButtonGroup operation1 = new ButtonGroup();
+        operation1.add(easy);
+        operation1.add(normal);
+        operation1.add(hard);
+
+        JPanel operPanel = new JPanel();
+        Box iconPanel = new Box(BoxLayout.Y_AXIS);
+
+        Border operBorder = BorderFactory.createTitledBorder("Operation");
+        operPanel.setBorder(operBorder);
+        operPanel.add(white);
+        operPanel.add(black);
+        operPanel.add(easy);
+        operPanel.add(normal);
+        operPanel.add(hard);
+
+        iconPanel.setBorder(operBorder);
+        iconPanel.add(white);
+        iconPanel.add(black);
+        iconPanel.add(easy);
+        iconPanel.add(normal);
+        iconPanel.add(hard);
+
+        white.setSelected(true);
+        normal.setSelected(true);
+        iconPanel.setVisible(true);
+
+
         this.chessGame = chessGame;
         for (Node node:this.chessGame.getNodes()){
             createAndAddGuiNode(node);
         }
+        this.setLayout(new FlowLayout(FlowLayout.LEFT,10,20));
 
         // Add listener
         nodeListenerForMouse listener = new nodeListenerForMouse(this.guiNodes,this);
@@ -73,23 +123,62 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         this.addMouseMotionListener(listener);
 
         // button to change game state
-        JButton btnChangeGameState = new JButton("change");
-        btnChangeGameState.addActionListener(new ChangeGameStateButtonActionListener(this));
+        JButton btnChangeGameState = new JButton("set");
+        ChangeGameStateButtonActionListener change = new ChangeGameStateButtonActionListener();
+        btnChangeGameState.addActionListener(change);
         btnChangeGameState.setBounds(0, 0, 80, 30);
-        this.add(btnChangeGameState);
+        iconPanel.add(btnChangeGameState);
 
-        // ladle to display game state
+//         ladle to display game state
         this.lblGameState = new JLabel();
         lblGameState.setText(this.getGameStateAsText());
         lblGameState.setBounds(0, 30, 80, 30);
-        this.add(lblGameState);
+
+        iconPanel.add(lblGameState);
+        this.lblGameState_record = new JLabel();
+        lblGameState_record.setText(this.getInformation());
+        lblGameState_record.setBounds(0, 80, 80, 30);
+
+        iconPanel.add(lblGameState_record);
 
         JFrame f = new JFrame();
         f.setVisible(true);
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        f.add(this);
-        f.setSize(this.imgBackground.getWidth(null), this.imgBackground.getHeight(null));
+        f.add(iconPanel, BorderLayout.EAST);
+        f.add(this,BorderLayout.CENTER);
+        f.setSize(this.imgBackground.getWidth(null)+100, this.imgBackground.getHeight(null)+50);
     }
+
+    public class ChangeGameStateButtonActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if(white.isSelected()){
+                gameState = ChessGame.GAME_STATE_WHITE;
+            } else if(black.isSelected()){
+                gameState = ChessGame.GAME_STATE_BLACK;
+            }
+
+            if(easy.isSelected()){
+                depth = 1;
+            } else if (normal.isSelected()){
+                depth = 5;
+            } else {
+                depth = 13;
+            }
+            SimpleAiPlayerHandler ai1 = new SimpleAiPlayerHandler(chessGame);
+            CamelotGui camelotGui = new CamelotGui(chessGame);
+            ai1.maxDepth=depth;
+            if (getSetGameState()==chessGame.GAME_STATE_BLACK){
+                chessGame.setPlayer(Node.COLOR_WHITE,ai1);
+                chessGame.setPlayer(Node.COLOR_BLACK, camelotGui);
+
+            } else {
+                chessGame.setPlayer(Node.COLOR_WHITE, camelotGui);
+                chessGame.setPlayer(Node.COLOR_BLACK, ai1);
+            }
+        }
+    }
+
 
     private String getGameStateAsText() {
         String state = "unknown";
@@ -99,18 +188,25 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
             case ChessGame.GAME_STATE_END_BLACK_WON: state = "black win!!!"; break;
             case ChessGame.GAME_STATE_WHITE: state = "white";break;
         }
-
         return state;
-//        return (this.chessGame.getGameState() == ChessGame.GAME_STATE_WHITE ? "white" : "black");
     }
+    private String getInformation(){
+        String info = "";
+        if (simpleAiPlayerHandler!=null) {
 
+            info += "MaxDepth= " + simpleAiPlayerHandler.getRecordDepth();
+
+            info += "\n" + "Number= " + simpleAiPlayerHandler.getTotalNumber();
+        }
+        return info;
+    }
 
     /**
      * switches between the different game states
      */
     public void changeGameState() {
-//        this.chessGame.changeGameState(move);
         this.lblGameState.setText(this.getGameStateAsText());
+        this.lblGameState_record.setText(this.getInformation());
     }
 
     public int getGameState(){
@@ -145,6 +241,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
 
         // draw current user
         this.lblGameState.setText(this.getGameStateAsText());
+        this.lblGameState_record.setText(this.getInformation());
 
     }
 
