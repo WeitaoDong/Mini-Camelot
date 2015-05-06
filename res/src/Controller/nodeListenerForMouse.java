@@ -38,10 +38,12 @@ public class nodeListenerForMouse implements MouseListener, MouseMotionListener 
                 if( (this.camelotGui.getGameState() == ChessGame.GAME_STATE_WHITE
                         && guinode.getColor() == Node.COLOR_WHITE
                         && !guinode.isCaptured()
+                        && this.camelotGui.getSetGameState()==ChessGame.GAME_STATE_WHITE
                 ) ||
                         (this.camelotGui.getGameState() == ChessGame.GAME_STATE_BLACK
                                 && guinode.getColor() == Node.COLOR_BLACK
                                 && !guinode.isCaptured()
+                                && this.camelotGui.getSetGameState()== ChessGame.GAME_STATE_BLACK
                             )
                         ) {
                     // calculate offset, because we do not want the drag piece
