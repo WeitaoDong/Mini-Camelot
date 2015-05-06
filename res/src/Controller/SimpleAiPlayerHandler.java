@@ -19,6 +19,8 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
     public int maxDepth = 7;
     private int recordDepth;
     private long totalNumber = 1;
+    private int currentDepth;
+    private int color;
     Date sysdate = new Date();
 
     public int getRecordDepth(){
@@ -31,8 +33,13 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
     public int log_max_pruning = 0;
     public int log_min_pruning = 0;
 
+    public int getLog_max_pruning(){
+        return this.log_max_pruning;
+    }
 
-
+    public int getLog_min_pruning(){
+        return this.log_min_pruning;
+    }
 
 
     public SimpleAiPlayerHandler(ChessGame chessGame) {
@@ -78,11 +85,13 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         log_min_pruning = 0;
         log_max_pruning = 0;
         recordDepth = 0;
+        currentDepth = 0;
         totalNumber = 1;
+        color = chessGame.getGameState();
         int alpha = Integer.MIN_VALUE;
         int beta = Integer.MAX_VALUE;
         sysdate = new Date();
-        List<Integer> bestMove = MAX_VALUE(maxDepth, recordDepth, sysdate, alpha, beta);
+        List<Integer> bestMove = MAX_VALUE(maxDepth, currentDepth, sysdate, alpha, beta);
         System.out.println("log_max_pruning= " + log_max_pruning);
         System.out.println("log_min_pruning= " + log_min_pruning);
         System.out.println("bestMove= " + bestMove);
@@ -91,29 +100,37 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         return best_;
     }
 
-    private boolean terminalTest(int depth, Date sysdate){
-        if (this.chessGame.getGameState()==ChessGame.GAME_STATE_END_BLACK_WON)
+    private boolean terminalTest(int depth, int currentDepth, Date sysdate){
+
+        if (this.chessGame.getGameState()==ChessGame.GAME_STATE_END_BLACK_WON
+                || this.chessGame.getGameState()==ChessGame.GAME_STATE_END_WHITE_WON) {
+            this.recordDepth = Math.max(this.recordDepth, currentDepth);
+            this.currentDepth=0;
             return true;
+        }
         Date date = new Date();
         long current = date.getTime();
         long sysTime = sysdate.getTime();
         if (depth<=0||current-sysTime>10*1000) {
+            this.recordDepth = Math.max(this.recordDepth, depth);
+            this.currentDepth=0;
             return true;
         } else return false;
 
     }
 
-    private List<Integer> MAX_VALUE(int Depth, int recordDepth, Date sysdate, int alpha, int beta) {
-        recordDepth++;
-        if (terminalTest(Depth,sysdate))
+    private List<Integer> MAX_VALUE(int Depth, int currentDepth, Date sysdate, int alpha, int beta) {
+        this.currentDepth++;
+        if (terminalTest(Depth,currentDepth,sysdate))
             return evaluateState();
         int v = Integer.MIN_VALUE;
         List<Move> validMoves = generateMoves();
         List<Integer> bestMove = new ArrayList<Integer>();
         Move best;
         for (Move move: validMoves){
+            totalNumber++;
             executeMove(move);
-            int temp = MIN_VALUE(Depth-1, recordDepth, sysdate, alpha, beta);
+            int temp = MIN_VALUE(Depth-1, currentDepth, sysdate, alpha, beta);
             undoMove(move);
             if (temp>v) {
                 best = move;
@@ -132,15 +149,16 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         }
         return bestMove;
     }
-    private int MIN_VALUE(int Depth, int recordDepth, Date sysdate, int alpha, int beta){
-        recordDepth++;
-        if (terminalTest(Depth,sysdate))
+    private int MIN_VALUE(int Depth, int currentDepth, Date sysdate, int alpha, int beta){
+        this.currentDepth++;
+        if (terminalTest(Depth,currentDepth,sysdate))
             return evaluateState().get(0);
         int v = Integer.MAX_VALUE;
         List<Move> validMoves = generateMoves();
         for (Move move : validMoves){
+            totalNumber++;
             executeMove(move);
-            int temp = MAX_VALUE(Depth - 1, recordDepth, sysdate, alpha, beta).get(0);
+            int temp = MAX_VALUE(Depth - 1, currentDepth, sysdate, alpha, beta).get(0);
             v = Math.min(v,temp);
             undoMove(move);
             if (v<=alpha) {

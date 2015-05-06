@@ -34,8 +34,6 @@ public class ChessGame implements Runnable{
     private IPlayerHandler blackPlayerHandler;
     private IPlayerHandler whitePlayerHandler;
     private IPlayerHandler activePlayerHandler;
-//    private MoveValidator moveValidator;
-
     /**
      * initialize game
      */
@@ -89,14 +87,12 @@ public class ChessGame implements Runnable{
 
     protected void swapActivePlayer() {
         // check if game end condition has been reached
-        //
         if( this.active_player == this.white_player ){
             this.active_player = this.black_player;
         }else{
             this.active_player = this.white_player;
         }
 
-//        this.changeGameState(move);
     }
 
 
@@ -167,7 +163,6 @@ public class ChessGame implements Runnable{
             return false;
         }
         int opponentColor = (node.getColor() == Node.COLOR_BLACK ? Node.COLOR_WHITE : Node.COLOR_BLACK);
-//TODO
         HashMap<Node, HashSet<Node>> tmp = new HashMap<Node, HashSet<Node>>(judgeCaptureNode(opponentColor));
         if (judgeFirstMove(tmp)) {
             if (((Math.abs(move.targetColumn - move.sourceColumn) == 0 && Math.abs(move.targetRow - move.sourceRow) == 2)
@@ -204,17 +199,10 @@ public class ChessGame implements Runnable{
         node.setRow(move.sourceRow);
         node.setColumn(move.sourceColumn);
 
-//        this.nodes.add(node);
-
         if (move.captureNode!=null){
-//            System.out.println(move.captureNode.toString());
-            // has already captured
-            // Node node1 = getNonCapturedNodeAtLocation(move.captureNode.getRow(),move.captureNode.getColumn());
-//            node1.isCaptured(false);
             move.captureNode.isCaptured(false);
             this.capturedNodes.remove(move.captureNode);
             move.captureNode = null;
-//            this.nodes.add(move.captureNode);
         }
 
         if(node.getColor() == Node.COLOR_BLACK){
@@ -257,41 +245,19 @@ public class ChessGame implements Runnable{
                         node.setRow(move.targetRow);
                         node.setColumn(move.targetColumn);
                         move.captureNode = node1;
-//                        move.captureNode = new Node(node1.getColor(),node1.getRow(),node1.getColumn());
                         this.capturedNodes.add(node1);
-//                        this.nodes.remove(node1);
                         return true;
-//                        System.out.println("Row = " + node.getRow() + " Column = " + node.getColumn());
                     }
                 }
             }
         } else if (judgeMoveNode(node, move.targetRow, move.targetColumn)&&valid(move.targetRow, move.targetColumn)) {
-//            System.out.println("plain and jump movement");
             node.setRow(move.targetRow);
             node.setColumn(move.targetColumn);
             return true;
-//                this.changeGameState();
         }
         // TODO check whether it can kill enemy continually
         return false;
     }
-//    public void judgeWin(int row, int column) {
-//        if (row == Node.ROW_1 && (column == Node.COLUMN_D || column == Node.COLUMN_E)&&this.gameState==Node.COLOR_BLACK){
-//            this.gameState=ChessGame.GAME_STATE_END_BLACK_WON;
-//        }
-//        if (row == Node.ROW_14 && (column == Node.COLUMN_D || column == Node.COLUMN_E&&this.gameState==Node.COLOR_WHITE)) {
-//            this.gameState=ChessGame.GAME_STATE_END_WHITE_WON;
-//        }
-//        int Color = this.getGameState();
-//        int numberBlack = 0;
-//        int numberWhite = 0;
-//        for (Node node : nodes){
-//            if (!node.isCaptured()&&node.getColor()==ChessGame.GAME_STATE_BLACK) numberBlack++;
-//            if (numberBlack==6) this.gameState=ChessGame.GAME_STATE_END_WHITE_WON;
-//            if (!node.isCaptured()&&node.getColor()==ChessGame.GAME_STATE_WHITE) numberWhite++;
-//            if (numberWhite==6) this.gameState=ChessGame.GAME_STATE_END_BLACK_WON;
-//        }
-//    }
 
     public boolean judgeEnd(int row, int column) {
         if (row == Node.ROW_1
@@ -391,7 +357,6 @@ public class ChessGame implements Runnable{
             if (node_tmp.getRow() == targetRow
                     && node_tmp.getColumn() == targetColumn
                     && !node_tmp.isCaptured()) {
-//                System.out.println(false);
                 return false;
             }
         }
@@ -420,10 +385,6 @@ public class ChessGame implements Runnable{
 
         return false;
     }
-
-//    public MoveValidator getMoveValidator(){
-//        return this.moveValidator;
-//    }
 
     @Override
     public void run() {

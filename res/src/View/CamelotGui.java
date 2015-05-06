@@ -88,16 +88,16 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         operation1.add(normal);
         operation1.add(hard);
 
-        JPanel operPanel = new JPanel();
+//        JPanel operPanel = new JPanel();
         Box iconPanel = new Box(BoxLayout.Y_AXIS);
 
         Border operBorder = BorderFactory.createTitledBorder("Operation");
-        operPanel.setBorder(operBorder);
-        operPanel.add(white);
-        operPanel.add(black);
-        operPanel.add(easy);
-        operPanel.add(normal);
-        operPanel.add(hard);
+//        operPanel.setBorder(operBorder);
+//        operPanel.add(white);
+//        operPanel.add(black);
+//        operPanel.add(easy);
+//        operPanel.add(normal);
+//        operPanel.add(hard);
 
         iconPanel.setBorder(operBorder);
         iconPanel.add(white);
@@ -133,20 +133,20 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         this.lblGameState = new JLabel();
         lblGameState.setText(this.getGameStateAsText());
         lblGameState.setBounds(0, 30, 80, 30);
-
         iconPanel.add(lblGameState);
-        this.lblGameState_record = new JLabel();
-        lblGameState_record.setText(this.getInformation());
-        lblGameState_record.setBounds(0, 80, 80, 30);
 
+        this.lblGameState_record = new JLabel(this.getInformation());
+        lblGameState_record.setText(this.getInformation());
+//        lblGameState_record.setBounds(0, 80, 80, 30);
         iconPanel.add(lblGameState_record);
+//        iconPanel.setLayout(new BoxLayout(iconPanel, BoxLayout.X_AXIS));
 
         JFrame f = new JFrame();
         f.setVisible(true);
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.add(iconPanel, BorderLayout.EAST);
         f.add(this,BorderLayout.CENTER);
-        f.setSize(this.imgBackground.getWidth(null)+100, this.imgBackground.getHeight(null)+50);
+        f.setSize(this.imgBackground.getWidth(null)+100, this.imgBackground.getHeight(null)+300);
     }
 
     public class ChangeGameStateButtonActionListener implements ActionListener {
@@ -166,7 +166,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
                 depth = 13;
             }
             SimpleAiPlayerHandler ai1 = new SimpleAiPlayerHandler(chessGame);
-            CamelotGui camelotGui = new CamelotGui(chessGame);
+            CamelotGui camelotGui = CamelotGui.this;
             ai1.maxDepth=depth;
             if (getSetGameState()==chessGame.GAME_STATE_BLACK){
                 chessGame.setPlayer(Node.COLOR_WHITE,ai1);
@@ -176,6 +176,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
                 chessGame.setPlayer(Node.COLOR_WHITE, camelotGui);
                 chessGame.setPlayer(Node.COLOR_BLACK, ai1);
             }
+            simpleAiPlayerHandler = ai1;
         }
     }
 
@@ -194,9 +195,11 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         String info = "";
         if (simpleAiPlayerHandler!=null) {
 
-            info += "MaxDepth= " + simpleAiPlayerHandler.getRecordDepth();
+            info += "<html>"+ "MaxDepth= " + simpleAiPlayerHandler.getRecordDepth();
 
-            info += "\n" + "Number= " + simpleAiPlayerHandler.getTotalNumber();
+            info += "<br>" + "Numbers= " + simpleAiPlayerHandler.getTotalNumber();
+            info += "<br>" + "Max_pruning= " + simpleAiPlayerHandler.getLog_max_pruning();
+            info += "<br>" + "Min_pruning= " + simpleAiPlayerHandler.getLog_min_pruning()+"</html>";
         }
         return info;
     }
