@@ -40,7 +40,7 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
     private Image imgBackground;
     private HashSet<GuiNode> guiNodes = new HashSet<GuiNode>();
     private GuiNode guiNode;
-    JRadioButton white, black, easy, normal, hard;
+    JRadioButton white, black, easy, normal, hard, normalMode, multiplyMode;
     protected int gameState;
     protected int depth;
     public int getDepth(){
@@ -49,6 +49,8 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
     public int getSetGameState(){
         return this.gameState;
     }
+    public boolean use = false;
+    public boolean multiply;
 
     private Move lastMove;
     private Move currentMove;
@@ -79,6 +81,8 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         easy = new JRadioButton("easy");
         normal = new JRadioButton("normal");
         hard = new JRadioButton("hard");
+        normalMode = new JRadioButton("Normal Mode");
+        multiplyMode = new JRadioButton("Multiply Mode");
 
         ButtonGroup operation = new ButtonGroup();
         operation.add(white);
@@ -88,6 +92,10 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         operation1.add(easy);
         operation1.add(normal);
         operation1.add(hard);
+
+        ButtonGroup operation2 = new ButtonGroup();
+        operation2.add(normalMode);
+        operation2.add(multiplyMode);
 
         Box iconPanel = new Box(BoxLayout.Y_AXIS);
 
@@ -99,9 +107,12 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
         iconPanel.add(easy);
         iconPanel.add(normal);
         iconPanel.add(hard);
+        iconPanel.add(normalMode);
+        iconPanel.add(multiplyMode);
 
         white.setSelected(true);
         normal.setSelected(true);
+        normalMode.setSelected(true);
         iconPanel.setVisible(true);
 
 
@@ -153,14 +164,25 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
 
             if(easy.isSelected()){
                 depth = 1;
+                use = true;
             } else if (normal.isSelected()){
-                depth = 5;
-            } else {
-                depth = 13;
+                depth = 6;
+                use = false;
+//                use = true;
+            } else if (hard.isSelected()){
+                depth = 10;
+            }
+
+            if (normalMode.isSelected()){
+                multiply=false;
+            } else if (multiplyMode.isSelected()){
+                multiply=true;
             }
             SimpleAiPlayerHandler ai1 = new SimpleAiPlayerHandler(chessGame);
             CamelotGui camelotGui = CamelotGui.this;
             ai1.maxDepth=depth;
+            ai1.evaluate1=use;
+            ai1.multiple=multiply;
             if (getSetGameState()==chessGame.GAME_STATE_BLACK){
                 chessGame.setPlayer(Node.COLOR_WHITE,ai1);
                 chessGame.setPlayer(Node.COLOR_BLACK, camelotGui);

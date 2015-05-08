@@ -21,6 +21,8 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
     private long totalNumber = 1;
     private int currentDepth;
     private int color;
+    public boolean evaluate1;
+    public boolean multiple;
     Date sysdate = new Date();
 
     public int getRecordDepth(){
@@ -48,9 +50,10 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
 
     @Override
     public Move getMove() {
-        Move ttt= alpha_beta_search();
-        System.out.println("ttt= "+ttt);
-        return ttt;
+//        Move ttt= alpha_beta_search();
+//        System.out.println("ttt= "+ttt);
+//        return ttt;
+        return alpha_beta_search();
     }
 
     /**
@@ -61,7 +64,7 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
     @Override
     public void moveSuccessfullyExecuted(Move move) {
         // we are using the same chessGame instance, so no need to do anything here.
-        System.out.println("executed: "+move);
+        System.out.println("executed: " + move);
     }
 
     /**
@@ -113,7 +116,7 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         long current = date.getTime();
         long sysTime = sysdate.getTime();
         if (depth<=0||current-sysTime>10*1000) {
-            this.recordDepth = Math.max(this.recordDepth, depth);
+            this.recordDepth = Math.max(this.recordDepth, currentDepth);
             this.currentDepth=0;
             return true;
         } else return false;
@@ -122,8 +125,11 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
     // max
     private List<Integer> MAX_VALUE(int Depth, int currentDepth, Date sysdate, int alpha, int beta) {
         this.currentDepth++;
-        if (terminalTest(Depth,currentDepth,sysdate))
-            return evaluateState();
+        if (terminalTest(Depth,this.currentDepth,sysdate)) {
+            if (evaluate1) {
+                return evaluateState1();
+            } else return evaluateState();
+        }
         int v = Integer.MIN_VALUE;
         List<Move> validMoves = generateMoves();
         List<Integer> bestMove = new ArrayList<Integer>();
@@ -153,8 +159,11 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
     // min
     private int MIN_VALUE(int Depth, int currentDepth, Date sysdate, int alpha, int beta){
         this.currentDepth++;
-        if (terminalTest(Depth,currentDepth,sysdate))
-            return evaluateState().get(0);
+        if (terminalTest(Depth,this.currentDepth,sysdate)) {
+            if (evaluate1) {
+                return evaluateState1().get(0);
+            } else return evaluateState().get(0);
+        }
         int v = Integer.MAX_VALUE;
         List<Move> validMoves = generateMoves();
         for (Move move : validMoves){
@@ -229,27 +238,68 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
      * @return integer score of current game state
      */
     private List<Integer> evaluateState() {
+        List<Integer> evaluate = new ArrayList<Integer>();
+
+        if (this.chessGame.getGameState()==chessGame.GAME_STATE_END_BLACK_WON
+                && color==chessGame.GAME_STATE_WHITE){
+            evaluate.add(0, Integer.MIN_VALUE+1);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
+        } else if (this.chessGame.getGameState()==chessGame.GAME_STATE_END_WHITE_WON
+                && color==chessGame.GAME_STATE_WHITE){
+            evaluate.add(0, Integer.MAX_VALUE-1);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
+        } else if (this.chessGame.getGameState()==chessGame.GAME_STATE_END_BLACK_WON
+                && color==chessGame.GAME_STATE_BLACK){
+            evaluate.add(0, Integer.MAX_VALUE-1);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
+        } else if (this.chessGame.getGameState()==chessGame.GAME_STATE_END_WHITE_WON
+                && color==chessGame.GAME_STATE_BLACK){
+            evaluate.add(0, Integer.MIN_VALUE+1);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
+        }
+
+        int num = 5;
         int myScore = 0;
         int OpScore = 0;
         for (Node node : chessGame.nodes) {
             if (!node.isCaptured() && node.getColor() == chessGame.getGameState()) {
                 if (node.getColor() == chessGame.GAME_STATE_WHITE) {
-                    myScore += node.getScore() * node.getRow();
+                    myScore += node.getScore() * node.getRow()*num;
                 } else if (node.getColor() == chessGame.GAME_STATE_BLACK) {
-                    myScore += node.getScore() * Math.abs(node.getRow() - 13);
+                    myScore += node.getScore() * Math.abs(node.getRow() - 13)*num;
                 }
             } else if (!node.isCaptured() && node.getColor() != chessGame.getGameState()) {
                 if (node.getColor() == chessGame.GAME_STATE_WHITE) {
-                    OpScore += node.getScore() * node.getRow();
+                    OpScore += node.getScore() * node.getRow()*num;
                 } else if (node.getColor() == chessGame.GAME_STATE_BLACK)
-                    OpScore += node.getScore() * Math.abs(node.getRow() - 13);
+                    OpScore += node.getScore() * Math.abs(node.getRow() - 13)*num;
             }
         }
         int node_diff = myScore - OpScore;
         int node_sum = myScore + OpScore;
 
-        List<Integer> evaluate = new ArrayList<Integer>();
-        evaluate.add(0, node_diff >= 0 ? node_diff * 1 - node_sum : node_diff * 1 + node_sum);
+
+        evaluate.add(0, node_diff >= 0 ? node_diff * 10 - node_sum : node_diff * 10 + node_sum);
         int i = 4;
         while (i > 0) {
             evaluate.add(0);
@@ -259,21 +309,21 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
     }
 
     // another evaluate
-    private int evaluateState(Move move) {
+    private List<Integer> evaluateState1() {
         // TODO
         // add up score
+
+        List<Integer> evaluate = new ArrayList<Integer>();
+
         //
         int scoreWhite = 0;
         int scoreBlack = 0;
-        Node temp = chessGame.getNonCapturedNodeAtLocation(move.targetRow, move.targetColumn);
-
-//        if (temp==null)
-//            System.out.println(move+" nodes= "+chessGame.nodes);
+//        Node temp = chessGame.getNonCapturedNodeAtLocation(move.targetRow, move.targetColumn);
         for (Node node : this.chessGame.getNodes()) {
-            if (!temp.isCaptured()&&temp.getColor()==ChessGame.GAME_STATE_WHITE) {
-                scoreWhite += temp.getScore()*getScoreForNodePosition(move,temp.getColor());
-            } else if (!temp.isCaptured()&&temp.getColor()==ChessGame.GAME_STATE_BLACK){
-                scoreBlack += temp.getScore()*getScoreForNodePosition(move,temp.getColor());
+            if (!node.isCaptured()&&node.getColor()==ChessGame.GAME_STATE_WHITE) {
+                scoreWhite += node.getScore()*getScoreForNodePosition(node.getRow(),node.getColumn(),node.getColor());
+            } else if (!node.isCaptured()&&node.getColor()==ChessGame.GAME_STATE_BLACK){
+                scoreBlack += node.getScore()*getScoreForNodePosition(node.getRow(),node.getColumn(),node.getColor());
             }else{
                 throw new IllegalStateException(
                         "unknown piece color found: "+node.getColor());
@@ -284,28 +334,71 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
         int gameState = this.chessGame.getGameState();
 
         if (gameState == ChessGame.GAME_STATE_BLACK){
-            return scoreWhite - scoreBlack;
+            evaluate.add(0, scoreWhite-scoreBlack);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
 
         }else if (gameState == ChessGame.GAME_STATE_WHITE){
-            return scoreBlack - scoreWhite;
+            evaluate.add(0, scoreBlack-scoreWhite);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
 
-        }else if (gameState == ChessGame.GAME_STATE_END_WHITE_WON){
-            return Integer.MIN_VALUE + 1;
+        }else if (gameState == ChessGame.GAME_STATE_END_WHITE_WON
+                && color==chessGame.GAME_STATE_BLACK){
+            evaluate.add(0, Integer.MIN_VALUE+1);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
 
-        }else if (gameState == ChessGame.GAME_STATE_END_BLACK_WON) {
-            return Integer.MAX_VALUE - 1;
+        }else if (gameState == ChessGame.GAME_STATE_END_BLACK_WON
+                && color==chessGame.GAME_STATE_BLACK) {
+            evaluate.add(0, Integer.MAX_VALUE-1);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
+        }else if (gameState == ChessGame.GAME_STATE_END_WHITE_WON
+                && color==chessGame.GAME_STATE_WHITE){
+            evaluate.add(0, Integer.MAX_VALUE-1);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
+
         }else {
-            throw new IllegalStateException("unknown game state: "+gameState);
+            evaluate.add(0, Integer.MIN_VALUE+1);
+            int i = 4;
+            while (i > 0) {
+                evaluate.add(0);
+                i--;
+            }
+            return evaluate;
         }
     }
 
     /**
      * get the evaluation bonus for the specified position
-     * @param move - one of Node.positon_..
+     * @param row
+     * @param column - one of Node.positon_..
      * @param color - one of Node.Color_..
      * @return integer score
      */
-    private int getScoreForNodePosition(Move move, int color) {
+    private int getScoreForNodePosition(int row, int column, int color) {
 //        Node node = chessGame.getNonCapturedNodeAtLocation(move.targetRow,move.targetColumn);
         if (color==chessGame.GAME_STATE_WHITE) {
             byte[][] positionWeight =
@@ -322,9 +415,9 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
                             , {8, 9, 10, 11, 11, 10, 9, 8}
                             , {0, 10, 11, 12, 12, 11, 10, 0}
                             , {0, 0, 13, 13, 13, 13, 0, 0}
-                            , {0, 0, 0, 100, 100, 0, 0, 0}
+                            , {0, 0, 0, 0, 0, 0, 0, 0}
                     };
-            return positionWeight[move.targetRow][move.targetColumn];
+            return positionWeight[row][column];
         }
         else {
             byte[][] positionWeight =
@@ -341,9 +434,9 @@ public class SimpleAiPlayerHandler implements IPlayerHandler {
                             , {2, 2, 3, 4, 4, 3, 2, 2}
                             , {0, 2, 3, 3, 3, 3, 2, 0}
                             , {0, 0, 2, 2, 2, 2, 0, 0}
-                            , {0, 0, 0, 1, 1, 0, 0, 0}
+                            , {0, 0, 0, 0, 0, 0, 0, 0}
                     };
-            return positionWeight[move.targetRow][move.targetColumn];
+            return positionWeight[row][column];
         }
 
     }
