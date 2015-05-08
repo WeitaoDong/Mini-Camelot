@@ -166,11 +166,11 @@ public class CamelotGui extends JPanel implements IPlayerHandler {
                 depth = 1;
                 use = true;
             } else if (normal.isSelected()){
-                depth = 6;
+                depth = 4;
                 use = false;
 //                use = true;
             } else if (hard.isSelected()){
-                depth = 10;
+                depth = 7;
             }
 
             if (normalMode.isSelected()){

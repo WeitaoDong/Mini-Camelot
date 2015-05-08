@@ -329,7 +329,7 @@ public class ChessGame implements Runnable{
     }
 
     // get the possible capture move's Map
-    private HashMap<Node, HashSet<Node>> judgeCaptureNode(int opponentColor) {
+    protected HashMap<Node, HashSet<Node>> judgeCaptureNode(int opponentColor) {
         hashMap = new HashMap<Node, HashSet<Node>>();
         for (Node nodeTarget : nodes) {
             if (!nodeTarget.isCaptured()) {
